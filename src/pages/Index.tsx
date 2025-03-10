@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,9 +53,7 @@ const Index = () => {
     setStep(4);
   };
 
-  const get
-
-StepContent = () => {
+  const getStepContent = () => {
     switch (step) {
       case 1:
         return (
