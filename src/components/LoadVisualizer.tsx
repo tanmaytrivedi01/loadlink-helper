@@ -1,8 +1,10 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { Trailer } from '@/lib/trailers';
+import LoadVisualizer3D from './LoadVisualizer3D';
 
 interface LoadVisualizerProps {
   trailer: Trailer;
@@ -11,6 +13,7 @@ interface LoadVisualizerProps {
 
 const LoadVisualizer: React.FC<LoadVisualizerProps> = ({ trailer, loadDimensions }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   // Colors for the visualization
   const colors = {
@@ -21,7 +24,7 @@ const LoadVisualizer: React.FC<LoadVisualizerProps> = ({ trailer, loadDimensions
   };
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || viewMode !== '2d') return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -125,7 +128,7 @@ const LoadVisualizer: React.FC<LoadVisualizerProps> = ({ trailer, loadDimensions
     ctx.fillStyle = '#333';
     ctx.fillText('Load', legendX + 30, legendY + 60);
 
-  }, [trailer, loadDimensions]);
+  }, [trailer, loadDimensions, viewMode]);
 
   return (
     <motion.div
@@ -140,22 +143,35 @@ const LoadVisualizer: React.FC<LoadVisualizerProps> = ({ trailer, loadDimensions
           This visualization shows how your load fits inside the {trailer.name.toLowerCase()}.
         </p>
         
-        <div className="bg-white border border-muted rounded-lg overflow-hidden shadow-sm">
-          <div className="p-4 bg-muted/10 border-b border-muted">
-            <p className="text-sm font-medium">Top View</p>
-          </div>
-          <div className="h-[400px] w-full relative">
-            <canvas 
-              ref={canvasRef}
-              className="w-full h-full"
-            />
-          </div>
-          <div className="p-4 border-t border-muted">
-            <p className="text-xs text-muted-foreground">
-              Note: This is a simplified 2D representation. In a full application, this would be an interactive 3D model.
-            </p>
-          </div>
-        </div>
+        <Tabs defaultValue="2d" value={viewMode} onValueChange={(value) => setViewMode(value as '2d' | '3d')} className="mb-6">
+          <TabsList className="grid w-[200px] grid-cols-2">
+            <TabsTrigger value="2d">2D View</TabsTrigger>
+            <TabsTrigger value="3d">3D View</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="2d" className="mt-4">
+            <div className="bg-white border border-muted rounded-lg overflow-hidden shadow-sm">
+              <div className="p-4 bg-muted/10 border-b border-muted">
+                <p className="text-sm font-medium">Top View</p>
+              </div>
+              <div className="h-[400px] w-full relative">
+                <canvas 
+                  ref={canvasRef}
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="3d" className="mt-4">
+            <div className="bg-white border border-muted rounded-lg overflow-hidden shadow-sm">
+              <div className="p-4 bg-muted/10 border-b border-muted">
+                <p className="text-sm font-medium">3D View (drag to rotate, scroll to zoom)</p>
+              </div>
+              <LoadVisualizer3D trailer={trailer} loadDimensions={loadDimensions} />
+            </div>
+          </TabsContent>
+        </Tabs>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div className="border border-muted rounded-md p-3 bg-muted/10">
