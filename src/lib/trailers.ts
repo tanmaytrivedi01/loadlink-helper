@@ -184,7 +184,7 @@ export function findSuitableTrailers(
   const heightFt = convertDimensionToFeet(height);
   const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
-  // Filter suitable trailers - exclude extremely oversized trailers unless absolutely needed
+  // Filter suitable trailers based on dimensions and weight capacity
   let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&
     widthFt <= trailer.maxWidth &&
@@ -192,9 +192,21 @@ export function findSuitableTrailers(
     weightLbs <= trailer.maxWeight
   );
   
-  // If the load is relatively small, exclude extremely large trailers like Schnabel trailers
+  // Exclude oversized/specialized trailers for normal loads
+  // This prevents recommending 200' trailers for standard cargo
+  if (lengthFt < 60 && widthFt <= 8.5 && heightFt <= 10 && weightLbs < 80000) {
+    suitableTrailers = suitableTrailers.filter(trailer => 
+      trailer.maxLength <= 65 && 
+      trailer.type !== "schnabel" &&
+      trailer.type !== "rgn-multi-axle"
+    );
+  }
+  
+  // Further restrict very specialized trailers
   if (lengthFt < 100 && weightLbs < 200000) {
-    suitableTrailers = suitableTrailers.filter(trailer => trailer.maxLength <= 100 || trailer.type !== "schnabel");
+    suitableTrailers = suitableTrailers.filter(trailer => 
+      trailer.type !== "schnabel"
+    );
   }
   
   return suitableTrailers.sort((a, b) => {

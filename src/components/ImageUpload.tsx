@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -193,7 +192,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
                           className="mt-1 w-full"
                           value={dimensions.length}
                           onChange={(e) => handleDimensionChange('length', e.target.value)}
-                          placeholder="e.g. 10 or 10'6\""
+                          placeholder="e.g. 10 or 10'6&quot;"
                         />
                       </div>
                       <div>
@@ -205,7 +204,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
                           className="mt-1 w-full"
                           value={dimensions.width}
                           onChange={(e) => handleDimensionChange('width', e.target.value)}
-                          placeholder="e.g. 8 or 8'6\""
+                          placeholder="e.g. 8 or 8'6&quot;"
                         />
                       </div>
                       <div>
@@ -217,7 +216,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
                           className="mt-1 w-full"
                           value={dimensions.height}
                           onChange={(e) => handleDimensionChange('height', e.target.value)}
-                          placeholder="e.g. 7 or 7'10\""
+                          placeholder="e.g. 7 or 7'10&quot;"
                         />
                       </div>
                     </div>
