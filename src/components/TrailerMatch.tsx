@@ -4,14 +4,16 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Trailer } from '@/lib/trailers';
+import { Trailer, PermitCosts, calculatePermitCosts } from '@/lib/trailers';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface TrailerMatchProps {
   trailers: Trailer[];
-  dimensions: { length: number; width: number; height: number };
-  weight: number;
+  dimensions: { length: number | string; width: number | string; height: number | string };
+  weight: number | string;
   onTrailerSelect: (trailer: Trailer) => void;
 }
 
@@ -26,15 +28,30 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
   );
   
   const [showSpecializedOnly, setShowSpecializedOnly] = useState<boolean>(false);
+  const [currency, setCurrency] = useState<'USD' | 'CAD'>('USD');
   
   const filteredTrailers = showSpecializedOnly 
     ? trailers.filter(trailer => trailer.specializedFor !== undefined)
     : trailers;
 
+  // Calculate permit costs
+  const permitCosts = calculatePermitCosts(
+    dimensions.length, 
+    dimensions.width, 
+    dimensions.height, 
+    weight,
+    currency
+  );
+
   const handleSelect = (trailer: Trailer) => {
     setSelectedTrailer(trailer.id);
     onTrailerSelect(trailer);
     toast.success(`Selected ${trailer.name}`);
+  };
+
+  const handleCurrencyChange = (value: 'USD' | 'CAD') => {
+    setCurrency(value);
+    toast.success(`Switched to ${value} rates`);
   };
 
   if (trailers.length === 0) {
@@ -99,14 +116,60 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
           We found {filteredTrailers.length} suitable trailer{filteredTrailers.length !== 1 ? 's' : ''} for your load.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="border border-muted rounded-md p-3 bg-muted/10">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Load Dimensions</p>
-            <p className="text-sm">{dimensions.length}' L × {dimensions.width}' W × {dimensions.height}' H</p>
+        <div className="space-y-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border border-muted rounded-md p-3 bg-muted/10">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Load Dimensions</p>
+              <p className="text-sm">{dimensions.length} L × {dimensions.width} W × {dimensions.height} H</p>
+            </div>
+            <div className="border border-muted rounded-md p-3 bg-muted/10">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Load Weight</p>
+              <p className="text-sm">{weight instanceof Number ? weight.toLocaleString() : weight} lbs</p>
+            </div>
           </div>
-          <div className="border border-muted rounded-md p-3 bg-muted/10">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Load Weight</p>
-            <p className="text-sm">{weight.toLocaleString()} lbs</p>
+          
+          <div className="border border-muted rounded-md p-4 bg-muted/10">
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-medium">Rate Currency</h4>
+              
+              <RadioGroup 
+                value={currency} 
+                onValueChange={(value) => handleCurrencyChange(value as 'USD' | 'CAD')}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="USD" id="usd" />
+                  <Label htmlFor="usd">USD</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="CAD" id="cad" />
+                  <Label htmlFor="cad">CAD</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Base Rate</p>
+                <p className="font-medium">{currency} ${permitCosts.permitFee}</p>
+              </div>
+              {permitCosts.pilotCars > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Pilot Cars ({permitCosts.pilotCars})</p>
+                  <p className="font-medium">{currency} ${permitCosts.pilotCarCost}</p>
+                </div>
+              )}
+              {permitCosts.policeEscort && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Police Escort</p>
+                  <p className="font-medium">{currency} ${permitCosts.policeEscortCost}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Total Permit Cost</p>
+                <p className="font-medium">{currency} ${permitCosts.total}</p>
+              </div>
+            </div>
           </div>
         </div>
         

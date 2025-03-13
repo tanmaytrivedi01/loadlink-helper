@@ -1,17 +1,18 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Download, FileText, Clipboard, CreditCard, Check } from 'lucide-react';
 import { Route, formatDistance, formatTime } from '@/lib/routes';
-import { Trailer } from '@/lib/trailers';
+import { Trailer, calculatePermitCosts } from '@/lib/trailers';
 import { toast } from 'sonner';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 interface DocumentGeneratorProps {
   trailer: Trailer;
-  loadDimensions: { length: number; width: number; height: number };
-  weight: number;
+  loadDimensions: { length: number | string; width: number | string; height: number | string };
+  weight: number | string;
   route: Route;
 }
 
@@ -23,13 +24,25 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
 }) => {
   const [documentType, setDocumentType] = useState<'quote' | 'invoice'>('quote');
   const [generated, setGenerated] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'CAD'>('USD');
   
-  // Calculate pricing (simplified for demonstration)
   const mileRate = trailer.type === 'reefer' ? 3.25 : 2.75; // $/mile
-  const baseCost = route.totalDistance * mileRate;
-  const fuelSurcharge = route.totalDistance * 0.35;
-  const additionalServices = documentType === 'invoice' ? 75 : 0; // Accessorials if invoice
-  const total = baseCost + fuelSurcharge + additionalServices;
+  const conversionRate = currency === 'CAD' ? 1.37 : 1;
+  const adjustedMileRate = mileRate * conversionRate;
+  
+  const baseCost = route.totalDistance * adjustedMileRate;
+  const fuelSurcharge = route.totalDistance * 0.35 * conversionRate;
+  const additionalServices = documentType === 'invoice' ? 75 * conversionRate : 0;
+  
+  const permitCosts = calculatePermitCosts(
+    loadDimensions.length, 
+    loadDimensions.width, 
+    loadDimensions.height, 
+    weight,
+    currency
+  );
+  
+  const total = baseCost + fuelSurcharge + additionalServices + permitCosts.total;
   
   const generateDocument = () => {
     setGenerated(true);
@@ -46,6 +59,11 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
     // In a real app, this would copy a shareable link to the clipboard
   };
 
+  const handleCurrencyChange = (value: 'USD' | 'CAD') => {
+    setCurrency(value);
+    toast.success(`Switched to ${value} rates`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -59,23 +77,43 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
           Generate quotes and invoices for your shipment.
         </p>
         
-        <div className="flex space-x-4 mb-6">
-          <Button
-            variant={documentType === 'quote' ? 'default' : 'outline'}
-            className={documentType === 'quote' ? 'bg-primary hover:bg-primary/90' : ''}
-            onClick={() => setDocumentType('quote')}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Quote
-          </Button>
-          <Button
-            variant={documentType === 'invoice' ? 'default' : 'outline'}
-            className={documentType === 'invoice' ? 'bg-primary hover:bg-primary/90' : ''}
-            onClick={() => setDocumentType('invoice')}
-          >
-            <CreditCard className="h-4 w-4 mr-2" />
-            Invoice
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex space-x-4">
+            <Button
+              variant={documentType === 'quote' ? 'default' : 'outline'}
+              className={documentType === 'quote' ? 'bg-primary hover:bg-primary/90' : ''}
+              onClick={() => setDocumentType('quote')}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Quote
+            </Button>
+            <Button
+              variant={documentType === 'invoice' ? 'default' : 'outline'}
+              className={documentType === 'invoice' ? 'bg-primary hover:bg-primary/90' : ''}
+              onClick={() => setDocumentType('invoice')}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Invoice
+            </Button>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">Currency:</span>
+            <RadioGroup 
+              value={currency} 
+              onValueChange={(value) => handleCurrencyChange(value as 'USD' | 'CAD')}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="USD" id="doc-usd" />
+                <Label htmlFor="doc-usd">USD</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="CAD" id="doc-cad" />
+                <Label htmlFor="doc-cad">CAD</Label>
+              </div>
+            </RadioGroup>
+          </div>
         </div>
         
         <div className="border border-muted rounded-lg overflow-hidden">
@@ -105,8 +143,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               <div>
                 <h5 className="text-sm font-medium mb-2">Load Details</h5>
                 <div className="space-y-2 text-sm">
-                  <p>Dimensions: <span className="font-medium">{loadDimensions.length}' × {loadDimensions.width}' × {loadDimensions.height}'</span></p>
-                  <p>Weight: <span className="font-medium">{weight.toLocaleString()} lbs</span></p>
+                  <p>Dimensions: <span className="font-medium">{loadDimensions.length} × {loadDimensions.width} × {loadDimensions.height}</span></p>
+                  <p>Weight: <span className="font-medium">{weight instanceof Number ? weight.toLocaleString() : weight} lbs</span></p>
                   <p>Trailer Type: <span className="font-medium">{trailer.name}</span></p>
                   <p>Trailer Capacity: <span className="font-medium">{trailer.maxWeight.toLocaleString()} lbs</span></p>
                 </div>
@@ -118,25 +156,44 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               
               <div className="border-t border-muted">
                 <div className="py-3 flex justify-between">
-                  <span className="text-sm">Base Rate ({formatDistance(route.totalDistance)} @ ${mileRate.toFixed(2)}/mile)</span>
-                  <span className="text-sm font-medium">${baseCost.toFixed(2)}</span>
+                  <span className="text-sm">Base Rate ({formatDistance(route.totalDistance)} @ ${adjustedMileRate.toFixed(2)}/mile)</span>
+                  <span className="text-sm font-medium">{currency} ${baseCost.toFixed(2)}</span>
                 </div>
                 
                 <div className="py-3 flex justify-between border-t border-muted">
                   <span className="text-sm">Fuel Surcharge</span>
-                  <span className="text-sm font-medium">${fuelSurcharge.toFixed(2)}</span>
+                  <span className="text-sm font-medium">{currency} ${fuelSurcharge.toFixed(2)}</span>
                 </div>
+                
+                <div className="py-3 flex justify-between border-t border-muted">
+                  <span className="text-sm">Permit Fee</span>
+                  <span className="text-sm font-medium">{currency} ${permitCosts.permitFee.toFixed(2)}</span>
+                </div>
+                
+                {permitCosts.pilotCars > 0 && (
+                  <div className="py-3 flex justify-between border-t border-muted">
+                    <span className="text-sm">Pilot Cars ({permitCosts.pilotCars})</span>
+                    <span className="text-sm font-medium">{currency} ${permitCosts.pilotCarCost.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                {permitCosts.policeEscort && (
+                  <div className="py-3 flex justify-between border-t border-muted">
+                    <span className="text-sm">Police Escort</span>
+                    <span className="text-sm font-medium">{currency} ${permitCosts.policeEscortCost.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 {documentType === 'invoice' && (
                   <div className="py-3 flex justify-between border-t border-muted">
                     <span className="text-sm">Additional Services</span>
-                    <span className="text-sm font-medium">${additionalServices.toFixed(2)}</span>
+                    <span className="text-sm font-medium">{currency} ${additionalServices.toFixed(2)}</span>
                   </div>
                 )}
                 
                 <div className="py-4 flex justify-between border-t border-muted">
                   <span className="text-base font-medium">Total</span>
-                  <span className="text-base font-medium">${total.toFixed(2)}</span>
+                  <span className="text-base font-medium">{currency} ${total.toFixed(2)}</span>
                 </div>
               </div>
             </div>

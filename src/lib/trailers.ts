@@ -1,4 +1,3 @@
-
 // Trailer Types and Data
 
 export interface Trailer {
@@ -146,25 +145,147 @@ export const trailers: Trailer[] = [
 ];
 
 /**
+ * Converts feet and inches string format to decimal feet
+ * Example: "43'2"" -> 43.1667
+ */
+export function convertDimensionToFeet(dimension: string): number {
+  // Handle plain numbers or already converted values
+  if (!isNaN(Number(dimension))) {
+    return Number(dimension);
+  }
+  
+  // Parse feet and inches format
+  const regex = /(\d+)'(\d+)"/;
+  const match = dimension.match(regex);
+  
+  if (match) {
+    const feet = parseInt(match[1]);
+    const inches = parseInt(match[2]);
+    return feet + (inches / 12);
+  }
+  
+  // If no match, try to convert directly
+  return parseFloat(dimension);
+}
+
+/**
  * Find suitable trailers for a load based on dimensions and weight
  */
 export function findSuitableTrailers(
-  length: number,
-  width: number,
-  height: number,
-  weight: number
+  length: number | string,
+  width: number | string,
+  height: number | string,
+  weight: number | string
 ): Trailer[] {
+  // Convert dimensions to decimal feet if they're in string format (e.g. "43'2"")
+  const lengthFt = typeof length === 'string' ? convertDimensionToFeet(length) : length;
+  const widthFt = typeof width === 'string' ? convertDimensionToFeet(width) : width;
+  const heightFt = typeof height === 'string' ? convertDimensionToFeet(height) : height;
+  const weightLbs = typeof weight === 'string' ? parseFloat(weight.replace(/,/g, '')) : weight;
+  
+  // Filter suitable trailers
   return trailers.filter(trailer => 
-    length <= trailer.maxLength &&
-    width <= trailer.maxWidth &&
-    height <= trailer.maxHeight &&
-    weight <= trailer.maxWeight
+    lengthFt <= trailer.maxLength &&
+    widthFt <= trailer.maxWidth &&
+    heightFt <= trailer.maxHeight &&
+    weightLbs <= trailer.maxWeight
   ).sort((a, b) => {
-    // Sort by closest fit to minimize wasted space
-    const aVolumeRatio = (length / a.maxLength) * (width / a.maxWidth) * (height / a.maxHeight);
-    const bVolumeRatio = (length / b.maxLength) * (width / b.maxWidth) * (height / b.maxHeight);
+    // First sort by specialization - specialized trailers first for heavy/oversized loads
+    if (weightLbs > 80000 || widthFt > 8.5 || heightFt > 9) {
+      const aIsSpecialized = a.specializedFor !== undefined;
+      const bIsSpecialized = b.specializedFor !== undefined;
+      
+      if (aIsSpecialized && !bIsSpecialized) return -1;
+      if (!aIsSpecialized && bIsSpecialized) return 1;
+    }
+    
+    // Then sort by best fit (closest match to actual dimensions)
+    // Use volume efficiency as the main criteria
+    const aVolumeRatio = (lengthFt / a.maxLength) * (widthFt / a.maxWidth) * (heightFt / a.maxHeight);
+    const bVolumeRatio = (lengthFt / b.maxLength) * (widthFt / b.maxWidth) * (heightFt / b.maxHeight);
+    
+    // Higher ratio means better fit (less wasted space)
     return bVolumeRatio - aVolumeRatio;
   });
+}
+
+/**
+ * Calculate permit and escort costs for oversize loads
+ */
+export interface PermitCosts {
+  permitFee: number;
+  pilotCars: number;
+  pilotCarCost: number;
+  policeEscort: boolean;
+  policeEscortCost: number;
+  total: number;
+}
+
+export function calculatePermitCosts(
+  length: number | string,
+  width: number | string,
+  height: number | string,
+  weight: number | string,
+  currency: 'USD' | 'CAD' = 'USD'
+): PermitCosts {
+  // Convert dimensions to decimal feet
+  const lengthFt = typeof length === 'string' ? convertDimensionToFeet(length) : length;
+  const widthFt = typeof width === 'string' ? convertDimensionToFeet(width) : width;
+  const heightFt = typeof height === 'string' ? convertDimensionToFeet(height) : height;
+  const weightLbs = typeof weight === 'string' ? parseFloat(weight.replace(/,/g, '')) : weight;
+  
+  // Base costs in USD
+  let permitFee = 50; // Base permit fee
+  let pilotCars = 0;
+  const pilotCarRate = 55; // Per hour
+  const avgTripHours = 10; // Average trip duration
+  let policeEscort = false;
+  const policeEscortRate = 95; // Per hour
+  
+  // Determine if load is oversized and calculate appropriate fees
+  if (widthFt > 8.5 || heightFt > 13.5 || lengthFt > 65 || weightLbs > 80000) {
+    permitFee = 150; // Increased permit fee for oversized loads
+    
+    // Pilot car requirements
+    if (widthFt > 12 || heightFt > 14 || lengthFt > 85 || weightLbs > 120000) {
+      pilotCars = 2; // Front and rear pilot cars
+      policeEscort = true;
+    } else if (widthFt > 10 || heightFt > 14 || lengthFt > 75 || weightLbs > 100000) {
+      pilotCars = 1; // Single pilot car
+    }
+  }
+  
+  // Calculate total costs
+  const pilotCarCost = pilotCars * pilotCarRate * avgTripHours;
+  const policeEscortCost = policeEscort ? policeEscortRate * avgTripHours : 0;
+  let total = permitFee + pilotCarCost + policeEscortCost;
+  
+  // Apply currency conversion if CAD
+  if (currency === 'CAD') {
+    const usdToCADRate = 1.37; // Example exchange rate
+    permitFee *= usdToCADRate;
+    const pilotCarCostCAD = pilotCarCost * usdToCADRate;
+    const policeEscortCostCAD = policeEscortCost * usdToCADRate;
+    total = permitFee + pilotCarCostCAD + policeEscortCostCAD;
+    
+    return {
+      permitFee: Math.round(permitFee),
+      pilotCars,
+      pilotCarCost: Math.round(pilotCarCostCAD),
+      policeEscort,
+      policeEscortCost: Math.round(policeEscortCostCAD),
+      total: Math.round(total)
+    };
+  }
+  
+  return {
+    permitFee: Math.round(permitFee),
+    pilotCars,
+    pilotCarCost: Math.round(pilotCarCost),
+    policeEscort,
+    policeEscortCost: Math.round(policeEscortCost),
+    total: Math.round(total)
+  };
 }
 
 /**

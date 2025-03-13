@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,16 +17,20 @@ import Footer from '@/components/Footer';
 const Index = () => {
   const [step, setStep] = useState(1);
   const [image, setImage] = useState<string | null>(null);
-  const [dimensions, setDimensions] = useState({ length: 0, width: 0, height: 0 });
-  const [weight, setWeight] = useState(0);
+  const [dimensions, setDimensions] = useState<{ 
+    length: number | string, 
+    width: number | string, 
+    height: number | string 
+  }>({ length: 0, width: 0, height: 0 });
+  const [weight, setWeight] = useState<number | string>(0);
   const [trailer, setTrailer] = useState<Trailer | null>(null);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [route, setRoute] = useState<Route | null>(null);
 
   const handleImageUploaded = (
     uploadedImage: string,
-    loadDimensions: { length: number; width: number; height: number },
-    loadWeight: number
+    loadDimensions: { length: number | string; width: number | string; height: number | string },
+    loadWeight: number | string
   ) => {
     setImage(uploadedImage);
     setDimensions(loadDimensions);
