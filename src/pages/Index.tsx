@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -99,9 +98,9 @@ const Index = () => {
               <LoadVisualizer
                 trailer={trailer}
                 loadDimensions={{
-                  length: convertDimensionToFeet(dimensions.length),
-                  width: convertDimensionToFeet(dimensions.width),
-                  height: convertDimensionToFeet(dimensions.height)
+                  length: Number(convertDimensionToFeet(dimensions.length)),
+                  width: Number(convertDimensionToFeet(dimensions.width)),
+                  height: Number(convertDimensionToFeet(dimensions.height))
                 }}
               />
               <RouteMap

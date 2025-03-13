@@ -184,7 +184,7 @@ export function findSuitableTrailers(
   const heightFt = convertDimensionToFeet(height);
   const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
-  // Filter suitable trailers based on dimensions and weight capacity
+  // Step 1: First get all trailers that can technically fit the load
   let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&
     widthFt <= trailer.maxWidth &&
@@ -192,23 +192,27 @@ export function findSuitableTrailers(
     weightLbs <= trailer.maxWeight
   );
   
-  // Exclude oversized/specialized trailers for normal loads
-  // This prevents recommending 200' trailers for standard cargo
-  if (lengthFt < 60 && widthFt <= 8.5 && heightFt <= 10 && weightLbs < 80000) {
+  // Step 2: Apply more restrictive filtering for normal-sized loads
+  // For standard loads, exclude specialized oversized equipment
+  if (lengthFt <= 53 && widthFt <= 8.5 && heightFt <= 10 && weightLbs <= 45000) {
+    // Standard loads should use standard equipment, no specialized trailers
     suitableTrailers = suitableTrailers.filter(trailer => 
-      trailer.maxLength <= 65 && 
       trailer.type !== "schnabel" &&
-      trailer.type !== "rgn-multi-axle"
+      trailer.type !== "rgn-multi-axle" &&
+      trailer.type !== "perimeter" &&
+      !trailer.specializedFor && // Exclude all specialized trailers
+      trailer.maxLength <= 53    // Standard length only
     );
-  }
-  
-  // Further restrict very specialized trailers
-  if (lengthFt < 100 && weightLbs < 200000) {
+  } 
+  // Step 3: For medium loads, still exclude extreme equipment like Schnabel
+  else if (lengthFt < 100 && weightLbs < 150000) {
     suitableTrailers = suitableTrailers.filter(trailer => 
-      trailer.type !== "schnabel"
+      trailer.type !== "schnabel" &&
+      trailer.maxLength <= 100   // Reasonable length for medium loads
     );
   }
   
+  // Step 4: Sort the trailers based on best fit
   return suitableTrailers.sort((a, b) => {
     // First sort by specialization - specialized trailers first for heavy/oversized loads
     if (weightLbs > 80000 || widthFt > 8.5 || heightFt > 9) {
