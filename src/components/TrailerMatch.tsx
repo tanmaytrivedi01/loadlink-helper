@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Trailer } from '@/lib/trailers';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TrailerMatchProps {
   trailers: Trailer[];
@@ -23,6 +24,12 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
   const [selectedTrailer, setSelectedTrailer] = useState<string | null>(
     trailers.length > 0 ? trailers[0].id : null
   );
+  
+  const [showSpecializedOnly, setShowSpecializedOnly] = useState<boolean>(false);
+  
+  const filteredTrailers = showSpecializedOnly 
+    ? trailers.filter(trailer => trailer.specializedFor !== undefined)
+    : trailers;
 
   const handleSelect = (trailer: Trailer) => {
     setSelectedTrailer(trailer.id);
@@ -53,7 +60,7 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
           <div className="border border-muted rounded-md p-3 bg-muted/10">
             <p className="text-xs font-medium text-muted-foreground mb-1">Recommendation</p>
             <p className="text-sm">
-              Consider splitting your load or requesting a specialized trailer.
+              Consider a specialized oversized/overweight trailer or splitting your load.
             </p>
           </div>
         </div>
@@ -69,13 +76,27 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
       className="w-full"
     >
       <Card className="p-6 glassmorphism">
-        <div className="flex items-center space-x-3 text-green-600 mb-4">
-          <CheckCircle className="h-5 w-5" />
-          <h3 className="text-xl font-medium">Matching Trailers</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3 text-green-600">
+            <CheckCircle className="h-5 w-5" />
+            <h3 className="text-xl font-medium">Matching Trailers</h3>
+          </div>
+          
+          <div className="flex items-center">
+            <label className="flex items-center cursor-pointer">
+              <span className="text-sm mr-2">Show specialized only</span>
+              <input
+                type="checkbox"
+                checked={showSpecializedOnly}
+                onChange={() => setShowSpecializedOnly(!showSpecializedOnly)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+            </label>
+          </div>
         </div>
         
         <p className="text-muted-foreground mb-6">
-          We found {trailers.length} suitable trailer{trailers.length !== 1 ? 's' : ''} for your load.
+          We found {filteredTrailers.length} suitable trailer{filteredTrailers.length !== 1 ? 's' : ''} for your load.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -90,7 +111,7 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
         </div>
         
         <div className="space-y-4">
-          {trailers.map((trailer) => (
+          {filteredTrailers.map((trailer) => (
             <motion.div
               key={trailer.id}
               initial={{ opacity: 0, x: -10 }}
@@ -116,7 +137,7 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground mb-3">
+                  <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground mb-3">
                     <div>
                       <p>Length</p>
                       <p className="font-medium text-foreground">{trailer.maxLength}'</p>
@@ -129,9 +150,13 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
                       <p>Height</p>
                       <p className="font-medium text-foreground">{trailer.maxHeight}'</p>
                     </div>
+                    <div>
+                      <p>Weight</p>
+                      <p className="font-medium text-foreground">{trailer.maxWeight.toLocaleString()} lbs</p>
+                    </div>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {trailer.features.map((feature, index) => (
                       <span 
                         key={index}
@@ -141,6 +166,24 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
                       </span>
                     ))}
                   </div>
+                  
+                  {trailer.specializedFor && (
+                    <div className="mt-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center text-xs text-blue-600">
+                              <Info className="h-3 w-3 mr-1" />
+                              <span>Specialized for oversized/overweight loads</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Specialized for: {trailer.specializedFor.join(', ')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -150,7 +193,7 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
         {selectedTrailer && (
           <Button
             className="w-full mt-6 bg-primary hover:bg-primary/90"
-            onClick={() => handleSelect(trailers.find(t => t.id === selectedTrailer)!)}
+            onClick={() => handleSelect(filteredTrailers.find(t => t.id === selectedTrailer)!)}
           >
             Continue with Selected Trailer
           </Button>
