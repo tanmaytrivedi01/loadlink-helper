@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Box, Text } from '@react-three/drei';
 import { Trailer } from '@/lib/trailers';
+import * as THREE from 'three';
 
 interface LoadVisualizer3DProps {
   trailer: Trailer;
