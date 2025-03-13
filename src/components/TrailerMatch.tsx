@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Trailer, PermitCosts, calculatePermitCosts } from '@/lib/trailers';
+import { Trailer, PermitCosts, calculatePermitCosts, convertDimensionToFeet } from '@/lib/trailers';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
@@ -54,6 +54,12 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
     toast.success(`Switched to ${value} rates`);
   };
 
+  // Convert dimensions to numbers for comparison
+  const lengthFt = convertDimensionToFeet(dimensions.length);
+  const widthFt = convertDimensionToFeet(dimensions.width);
+  const heightFt = convertDimensionToFeet(dimensions.height);
+  const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
+
   if (trailers.length === 0) {
     return (
       <Card className="p-6 glassmorphism border-red-100">
@@ -68,10 +74,10 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
           <div className="border border-red-100 rounded-md p-3 bg-red-50/30">
             <p className="text-xs font-medium text-red-500 mb-1">Issue</p>
             <p className="text-sm">
-              {dimensions.length > 53 && "Length exceeds maximum trailer length. "}
-              {dimensions.width > 8.5 && "Width exceeds standard trailer width. "}
-              {dimensions.height > 11.5 && "Height exceeds maximum trailer height. "}
-              {weight > 80000 && "Weight exceeds legal load limit. "}
+              {lengthFt > 53 && "Length exceeds maximum trailer length. "}
+              {widthFt > 8.5 && "Width exceeds standard trailer width. "}
+              {heightFt > 11.5 && "Height exceeds maximum trailer height. "}
+              {weightLbs > 80000 && "Weight exceeds legal load limit. "}
             </p>
           </div>
           <div className="border border-muted rounded-md p-3 bg-muted/10">
@@ -124,7 +130,7 @@ const TrailerMatch: React.FC<TrailerMatchProps> = ({
             </div>
             <div className="border border-muted rounded-md p-3 bg-muted/10">
               <p className="text-xs font-medium text-muted-foreground mb-1">Load Weight</p>
-              <p className="text-sm">{weight instanceof Number ? weight.toLocaleString() : weight} lbs</p>
+              <p className="text-sm">{typeof weight === 'number' ? weight.toLocaleString() : weight} lbs</p>
             </div>
           </div>
           

@@ -1,3 +1,4 @@
+
 // Trailer Types and Data
 
 export interface Trailer {
@@ -148,10 +149,10 @@ export const trailers: Trailer[] = [
  * Converts feet and inches string format to decimal feet
  * Example: "43'2"" -> 43.1667
  */
-export function convertDimensionToFeet(dimension: string): number {
+export function convertDimensionToFeet(dimension: string | number): number {
   // Handle plain numbers or already converted values
-  if (!isNaN(Number(dimension))) {
-    return Number(dimension);
+  if (typeof dimension === 'number') {
+    return dimension;
   }
   
   // Parse feet and inches format
@@ -178,18 +179,25 @@ export function findSuitableTrailers(
   weight: number | string
 ): Trailer[] {
   // Convert dimensions to decimal feet if they're in string format (e.g. "43'2"")
-  const lengthFt = typeof length === 'string' ? convertDimensionToFeet(length) : length;
-  const widthFt = typeof width === 'string' ? convertDimensionToFeet(width) : width;
-  const heightFt = typeof height === 'string' ? convertDimensionToFeet(height) : height;
-  const weightLbs = typeof weight === 'string' ? parseFloat(weight.replace(/,/g, '')) : weight;
+  const lengthFt = convertDimensionToFeet(length);
+  const widthFt = convertDimensionToFeet(width);
+  const heightFt = convertDimensionToFeet(height);
+  const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
-  // Filter suitable trailers
-  return trailers.filter(trailer => 
+  // Filter suitable trailers - exclude extremely oversized trailers unless absolutely needed
+  let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&
     widthFt <= trailer.maxWidth &&
     heightFt <= trailer.maxHeight &&
     weightLbs <= trailer.maxWeight
-  ).sort((a, b) => {
+  );
+  
+  // If the load is relatively small, exclude extremely large trailers like Schnabel trailers
+  if (lengthFt < 100 && weightLbs < 200000) {
+    suitableTrailers = suitableTrailers.filter(trailer => trailer.maxLength <= 100 || trailer.type !== "schnabel");
+  }
+  
+  return suitableTrailers.sort((a, b) => {
     // First sort by specialization - specialized trailers first for heavy/oversized loads
     if (weightLbs > 80000 || widthFt > 8.5 || heightFt > 9) {
       const aIsSpecialized = a.specializedFor !== undefined;
@@ -200,12 +208,23 @@ export function findSuitableTrailers(
     }
     
     // Then sort by best fit (closest match to actual dimensions)
-    // Use volume efficiency as the main criteria
-    const aVolumeRatio = (lengthFt / a.maxLength) * (widthFt / a.maxWidth) * (heightFt / a.maxHeight);
-    const bVolumeRatio = (lengthFt / b.maxLength) * (widthFt / b.maxWidth) * (heightFt / b.maxHeight);
+    // Calculate how much extra space there is
+    const aExtraLength = a.maxLength - lengthFt;
+    const bExtraLength = b.maxLength - lengthFt;
     
-    // Higher ratio means better fit (less wasted space)
-    return bVolumeRatio - aVolumeRatio;
+    // Prefer trailers that are closer in size to the actual load
+    // But still big enough (with some margin)
+    if (aExtraLength > 0 && aExtraLength < bExtraLength) return -1;
+    if (bExtraLength > 0 && bExtraLength < aExtraLength) return 1;
+    
+    // If similar in length, compare weight capacity
+    const aExtraWeight = a.maxWeight - weightLbs;
+    const bExtraWeight = b.maxWeight - weightLbs;
+    
+    if (aExtraWeight > 0 && aExtraWeight < bExtraWeight) return -1;
+    if (bExtraWeight > 0 && bExtraWeight < aExtraWeight) return 1;
+    
+    return 0;
   });
 }
 
@@ -229,10 +248,10 @@ export function calculatePermitCosts(
   currency: 'USD' | 'CAD' = 'USD'
 ): PermitCosts {
   // Convert dimensions to decimal feet
-  const lengthFt = typeof length === 'string' ? convertDimensionToFeet(length) : length;
-  const widthFt = typeof width === 'string' ? convertDimensionToFeet(width) : width;
-  const heightFt = typeof height === 'string' ? convertDimensionToFeet(height) : height;
-  const weightLbs = typeof weight === 'string' ? parseFloat(weight.replace(/,/g, '')) : weight;
+  const lengthFt = convertDimensionToFeet(length);
+  const widthFt = convertDimensionToFeet(width);
+  const heightFt = convertDimensionToFeet(height);
+  const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
   // Base costs in USD
   let permitFee = 50; // Base permit fee

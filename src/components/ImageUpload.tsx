@@ -5,12 +5,13 @@ import { Card } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 interface ImageUploadProps {
   onImageUploaded: (
     image: string,
-    dimensions: { length: number; width: number; height: number },
-    weight: number
+    dimensions: { length: number | string; width: number | string; height: number | string },
+    weight: number | string
   ) => void;
 }
 
@@ -18,11 +19,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
   const [image, setImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dimensions, setDimensions] = useState({
-    length: 10,
-    width: 6,
-    height: 4
+    length: "10",
+    width: "6",
+    height: "4"
   });
-  const [weight, setWeight] = useState<number>(2000);
+  const [weight, setWeight] = useState<string>("2000");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -81,6 +82,29 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
       onImageUploaded(image, dimensions, weight);
     } else {
       toast.error('Please upload an image first');
+    }
+  };
+
+  const handleDimensionChange = (
+    field: 'length' | 'width' | 'height', 
+    value: string
+  ) => {
+    // Allow feet and inches format (e.g., 43'2")
+    const feetInchesRegex = /^\d+'\d+"?$/;
+    // Allow decimal numbers (e.g., 43.5)
+    const decimalRegex = /^\d+(\.\d+)?$/;
+    
+    // If the input is empty or just starting with a digit, allow it
+    if (value === '' || value === '0' || value.match(/^\d+$/) || value.match(decimalRegex) || value.match(feetInchesRegex)) {
+      setDimensions(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleWeightChange = (value: string) => {
+    // Allow empty or numbers, with or without commas
+    const cleanValue = value.replace(/,/g, '');
+    if (value === '' || !isNaN(Number(cleanValue))) {
+      setWeight(value);
     }
   };
 
@@ -162,35 +186,38 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Length (ft)
+                          Length (ft or ft'in")
                         </label>
-                        <input
-                          type="number"
-                          className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-md"
+                        <Input
+                          type="text"
+                          className="mt-1 w-full"
                           value={dimensions.length}
-                          onChange={(e) => setDimensions({...dimensions, length: parseFloat(e.target.value) || 0})}
+                          onChange={(e) => handleDimensionChange('length', e.target.value)}
+                          placeholder="e.g. 10 or 10'6\""
                         />
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Width (ft)
+                          Width (ft or ft'in")
                         </label>
-                        <input
-                          type="number"
-                          className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-md"
+                        <Input
+                          type="text"
+                          className="mt-1 w-full"
                           value={dimensions.width}
-                          onChange={(e) => setDimensions({...dimensions, width: parseFloat(e.target.value) || 0})}
+                          onChange={(e) => handleDimensionChange('width', e.target.value)}
+                          placeholder="e.g. 8 or 8'6\""
                         />
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Height (ft)
+                          Height (ft or ft'in")
                         </label>
-                        <input
-                          type="number"
-                          className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-md"
+                        <Input
+                          type="text"
+                          className="mt-1 w-full"
                           value={dimensions.height}
-                          onChange={(e) => setDimensions({...dimensions, height: parseFloat(e.target.value) || 0})}
+                          onChange={(e) => handleDimensionChange('height', e.target.value)}
+                          placeholder="e.g. 7 or 7'10\""
                         />
                       </div>
                     </div>
@@ -199,11 +226,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
                       <label className="text-sm font-medium text-muted-foreground">
                         Weight (lbs)
                       </label>
-                      <input
-                        type="number"
-                        className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-md"
+                      <Input
+                        type="text"
+                        className="mt-1 w-full"
                         value={weight}
-                        onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => handleWeightChange(e.target.value)}
+                        placeholder="e.g. 40000"
                       />
                     </div>
                     

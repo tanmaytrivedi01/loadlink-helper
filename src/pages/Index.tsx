@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { findSuitableTrailers, Trailer } from '@/lib/trailers';
+import { findSuitableTrailers, Trailer, convertDimensionToFeet } from '@/lib/trailers';
 import { Route } from '@/lib/routes';
 import { toast } from 'sonner';
 
@@ -98,7 +98,11 @@ const Index = () => {
             <div className="space-y-8">
               <LoadVisualizer
                 trailer={trailer}
-                loadDimensions={dimensions}
+                loadDimensions={{
+                  length: convertDimensionToFeet(dimensions.length),
+                  width: convertDimensionToFeet(dimensions.width),
+                  height: convertDimensionToFeet(dimensions.height)
+                }}
               />
               <RouteMap
                 trailer={trailer}
