@@ -16,10 +16,8 @@ const TrailerModel: React.FC<{
 }> = ({ dimensions, position = [0, 0, 0] }) => {
   // Scale trailer to fit well in view
   return (
-    <Box 
-      args={[dimensions.length, dimensions.height, dimensions.width]} 
-      position={position}
-    >
+    <mesh position={position}>
+      <boxGeometry args={[dimensions.length, dimensions.height, dimensions.width]} />
       <meshStandardMaterial color="#e0e0e0" transparent opacity={0.3} />
       <Text
         position={[0, dimensions.height / 2 + 0.5, 0]}
@@ -30,7 +28,7 @@ const TrailerModel: React.FC<{
       >
         Trailer
       </Text>
-    </Box>
+    </mesh>
   );
 };
 
@@ -47,11 +45,8 @@ const LoadModel: React.FC<{
   });
 
   return (
-    <Box 
-      ref={loadRef}
-      args={[dimensions.length, dimensions.height, dimensions.width]} 
-      position={[0, 0, 0]}
-    >
+    <mesh ref={loadRef} position={[0, 0, 0]}>
+      <boxGeometry args={[dimensions.length, dimensions.height, dimensions.width]} />
       <meshStandardMaterial color="#3b82f6" />
       <Text
         position={[0, dimensions.height / 2 + 0.3, 0]}
@@ -62,7 +57,7 @@ const LoadModel: React.FC<{
       >
         Load
       </Text>
-    </Box>
+    </mesh>
   );
 };
 
@@ -90,8 +85,6 @@ const LoadVisualizer3D: React.FC<LoadVisualizer3DProps> = ({ trailer, loadDimens
           position={[10, 10, 10]} 
           intensity={1} 
           castShadow 
-          shadow-mapSize-width={2048} 
-          shadow-mapSize-height={2048} 
         />
         <PerspectiveCamera makeDefault position={[10, 5, 10]} />
         <OrbitControls 
