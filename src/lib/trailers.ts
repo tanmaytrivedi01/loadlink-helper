@@ -1,4 +1,3 @@
-
 // Trailer Types and Data
 
 export interface Trailer {
@@ -186,40 +185,101 @@ export function findSuitableTrailers(
   
   console.log("Finding trailers for:", { lengthFt, widthFt, heightFt, weightLbs });
   
-  // For oversized loads, prioritize specialized equipment
-  const isOversized = widthFt > 8.5 || heightFt > 13.5 || lengthFt > 65 || weightLbs > 80000;
-  const isVeryOversized = widthFt > 10 || heightFt > 14 || lengthFt > 85 || weightLbs > 120000;
+  // Define different types of oversized loads
+  const isExtremeLengthLoad = lengthFt > 100;
+  const isExtremeWidthLoad = widthFt > 12;
+  const isExtremeHeightLoad = heightFt > 14;
+  const isExtremeWeightLoad = weightLbs > 200000;
   
-  // If load is oversized, first check specialized trailers
-  if (isOversized || isVeryOversized) {
-    console.log("Load is oversized, prioritizing specialized trailers");
+  const isOversized = widthFt > 8.5 || heightFt > 13.5 || lengthFt > 65 || weightLbs > 80000;
+  const isVeryOversized = widthFt > 10 || heightFt > 14 || lengthFt > 85 || weightLbs > 120000 || isExtremeLengthLoad;
+  
+  // For extremely long loads, prioritize specialized equipment like Schnabel trailers
+  if (isExtremeLengthLoad) {
+    console.log("Load is extremely long, prioritizing specialized trailers for long loads");
     
-    // Filter trailers that are specifically designed for oversized loads
+    // Find trailers specifically designed for very long loads
+    const specializedLengthTrailers = trailers.filter(trailer => 
+      (trailer.specializedFor?.includes("Overlength loads") || 
+       trailer.maxLength >= lengthFt)
+    );
+    
+    if (specializedLengthTrailers.length > 0) {
+      console.log("Found specialized trailers for extreme length:", specializedLengthTrailers.length);
+      
+      // Sort by closest match on length capacity
+      return specializedLengthTrailers.sort((a, b) => {
+        // Schnabel trailers get highest priority for extreme length
+        if (a.type === 'schnabel' && b.type !== 'schnabel') return -1;
+        if (b.type === 'schnabel' && a.type !== 'schnabel') return 1;
+        
+        // Then extendable trailers
+        if (a.type === 'extendable' && b.type !== 'extendable') return -1;
+        if (b.type === 'extendable' && a.type !== 'extendable') return 1;
+        
+        // Then sort by max length (closest match)
+        if (a.maxLength >= lengthFt && b.maxLength >= lengthFt) {
+          return a.maxLength - b.maxLength; // Prefer the closest fit
+        }
+        
+        return b.maxLength - a.maxLength; // Otherwise prefer the longest
+      });
+    }
+  }
+  
+  // If load is very oversized, prioritize specialized trailers
+  if (isVeryOversized) {
+    console.log("Load is very oversized, prioritizing specialized trailers");
+    
+    // Define which specialized feature we need most
+    let neededSpecialization = [];
+    
+    if (isExtremeLengthLoad) neededSpecialization.push("Overlength loads");
+    if (isExtremeWidthLoad) neededSpecialization.push("Oversized loads");
+    if (isExtremeHeightLoad) neededSpecialization.push("Overheight loads");
+    if (isExtremeWeightLoad) neededSpecialization.push("Overweight loads");
+    
+    // Filter trailers that are specifically designed for the primary oversized characteristic
     const specializedTrailers = trailers.filter(trailer => 
       trailer.specializedFor !== undefined && 
-      trailer.maxWidth >= widthFt &&
-      trailer.maxHeight >= heightFt &&
-      trailer.maxWeight >= weightLbs
+      (neededSpecialization.length === 0 || 
+       neededSpecialization.some(need => trailer.specializedFor?.includes(need)))
     );
     
     console.log("Found specialized trailers:", specializedTrailers.length);
     
     if (specializedTrailers.length > 0) {
       return specializedTrailers.sort((a, b) => {
-        // Sort by closest capacity match
-        const aWeightRatio = a.maxWeight / weightLbs;
-        const bWeightRatio = b.maxWeight / weightLbs;
+        // For extreme length, prioritize length capacity
+        if (isExtremeLengthLoad) {
+          if (a.maxLength >= lengthFt && b.maxLength < lengthFt) return -1;
+          if (b.maxLength >= lengthFt && a.maxLength < lengthFt) return 1;
+        }
         
-        // We want the ratio to be close to but greater than 1
-        // Lower score is better (closer match)
-        const aScore = aWeightRatio >= 1 ? aWeightRatio - 1 : 99;
-        const bScore = bWeightRatio >= 1 ? bWeightRatio - 1 : 99;
+        // For extreme width, prioritize width capacity
+        if (isExtremeWidthLoad) {
+          if (a.maxWidth >= widthFt && b.maxWidth < widthFt) return -1;
+          if (b.maxWidth >= widthFt && a.maxWidth < widthFt) return 1;
+        }
         
-        return aScore - bScore;
+        // For extreme weight, prioritize weight capacity
+        if (isExtremeWeightLoad) {
+          const aWeightRatio = a.maxWeight / weightLbs;
+          const bWeightRatio = b.maxWeight / weightLbs;
+          
+          // We want the ratio to be close to but greater than 1
+          const aScore = aWeightRatio >= 1 ? aWeightRatio - 1 : 99;
+          const bScore = bWeightRatio >= 1 ? bWeightRatio - 1 : 99;
+          
+          return aScore - bScore;
+        }
+        
+        return 0;
       });
     }
   }
   
+  // The standard trailer filtering logic continues as before
   // Get all trailers that can technically fit the load
   let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&

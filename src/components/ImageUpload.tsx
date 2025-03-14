@@ -61,8 +61,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
       if (e.target?.result) {
         setImage(e.target.result as string);
         
-        // In a real app, you'd analyze the image here to determine dimensions
-        // For now, we'll just use placeholder values that will be manually editable
         toast.success('Image uploaded successfully');
       }
     };
@@ -78,20 +76,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
 
   const handleSubmit = () => {
     if (image) {
-      // Make sure we have valid dimensions and weight
       if (!dimensions.length || !dimensions.width || !dimensions.height || !weight) {
         toast.error('Please enter valid dimensions and weight');
         return;
       }
       
-      // Ensure we have valid numeric values (or valid format strings) for dimensions
       const validDimensions = {
         length: dimensions.length || "10",
         width: dimensions.width || "6",
         height: dimensions.height || "4"
       };
       
-      // Ensure we have a valid numeric value for weight
       const validWeight = weight || "2000";
       
       console.log("Submitting load with dimensions:", validDimensions, "and weight:", validWeight);
@@ -106,19 +101,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
     field: 'length' | 'width' | 'height', 
     value: string
   ) => {
-    // Allow feet and inches format (e.g., 43'2")
     const feetInchesRegex = /^\d+'\d+"?$/;
-    // Allow decimal numbers (e.g., 43.5)
-    const decimalRegex = /^\d+(\.\d+)?$/;
+    const decimalRegex = /^\d+(\.\d*)?$/;
+    const startingDecimalRegex = /^\d+\.$/;
     
-    // If the input is empty or just starting with a digit, allow it
-    if (value === '' || value === '0' || value.match(/^\d+$/) || value.match(decimalRegex) || value.match(feetInchesRegex)) {
+    if (value === '' || 
+        value === '0' || 
+        value.match(/^\d+$/) || 
+        value.match(decimalRegex) || 
+        value.match(startingDecimalRegex) || 
+        value.match(feetInchesRegex)) {
       setDimensions(prev => ({ ...prev, [field]: value }));
     }
   };
 
   const handleWeightChange = (value: string) => {
-    // Allow empty or numbers, with or without commas
     const cleanValue = value.replace(/,/g, '');
     if (value === '' || !isNaN(Number(cleanValue))) {
       setWeight(value);
