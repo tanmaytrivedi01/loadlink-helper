@@ -78,7 +78,25 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded }) => {
 
   const handleSubmit = () => {
     if (image) {
-      onImageUploaded(image, dimensions, weight);
+      // Make sure we have valid dimensions and weight
+      if (!dimensions.length || !dimensions.width || !dimensions.height || !weight) {
+        toast.error('Please enter valid dimensions and weight');
+        return;
+      }
+      
+      // Ensure we have valid numeric values (or valid format strings) for dimensions
+      const validDimensions = {
+        length: dimensions.length || "10",
+        width: dimensions.width || "6",
+        height: dimensions.height || "4"
+      };
+      
+      // Ensure we have a valid numeric value for weight
+      const validWeight = weight || "2000";
+      
+      console.log("Submitting load with dimensions:", validDimensions, "and weight:", validWeight);
+      
+      onImageUploaded(image, validDimensions, validWeight);
     } else {
       toast.error('Please upload an image first');
     }

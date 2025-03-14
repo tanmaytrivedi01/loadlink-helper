@@ -184,6 +184,8 @@ export function findSuitableTrailers(
   const heightFt = convertDimensionToFeet(height);
   const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
+  console.log("Finding trailers for:", { lengthFt, widthFt, heightFt, weightLbs });
+  
   // Get all trailers that can technically fit the load
   let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&
@@ -191,28 +193,33 @@ export function findSuitableTrailers(
     heightFt <= trailer.maxHeight &&
     weightLbs <= trailer.maxWeight
   );
+  
+  console.log("Initial suitable trailers:", suitableTrailers.length);
 
-  // If no trailers found at all, return the largest ones that are closest to accommodating the load
+  // If no trailers found at all, return all trailers sorted by suitability
   if (suitableTrailers.length === 0) {
-    // Return a few of the largest trailers available
+    console.log("No exact matches, finding closest alternatives");
+    // Return all trailers sorted by suitability
     return trailers
       .sort((a, b) => {
-        // Sort by maximum dimensions and weight, prioritizing the trailer's strongest attribute
-        const aMax = Math.max(
-          a.maxLength / lengthFt,
-          a.maxWidth / widthFt, 
-          a.maxHeight / heightFt,
-          a.maxWeight / weightLbs
-        );
-        const bMax = Math.max(
-          b.maxLength / lengthFt,
-          b.maxWidth / widthFt,
-          b.maxHeight / heightFt,
-          b.maxWeight / weightLbs
-        );
-        return bMax - aMax; // Descending order
+        // Calculate a suitability score based on how close each dimension is
+        const aScore = (
+          (a.maxLength >= lengthFt ? 1 : a.maxLength / lengthFt) +
+          (a.maxWidth >= widthFt ? 1 : a.maxWidth / widthFt) + 
+          (a.maxHeight >= heightFt ? 1 : a.maxHeight / heightFt) +
+          (a.maxWeight >= weightLbs ? 1 : a.maxWeight / weightLbs)
+        ) / 4; // Average across all dimensions
+        
+        const bScore = (
+          (b.maxLength >= lengthFt ? 1 : b.maxLength / lengthFt) +
+          (b.maxWidth >= widthFt ? 1 : b.maxWidth / widthFt) + 
+          (b.maxHeight >= heightFt ? 1 : b.maxHeight / heightFt) +
+          (b.maxWeight >= weightLbs ? 1 : b.maxWeight / weightLbs)
+        ) / 4;
+        
+        return bScore - aScore; // Descending order by score
       })
-      .slice(0, 3); // Get top 3 closest trailers
+      .slice(0, 5); // Get top 5 closest trailers
   }
   
   // For standard loads, exclude specialized oversized equipment
@@ -232,6 +239,14 @@ export function findSuitableTrailers(
       trailer.type !== "schnabel" &&
       trailer.maxLength <= 100   // Reasonable length for medium loads
     );
+  }
+  
+  console.log("Final suitable trailers:", suitableTrailers.length);
+  
+  // If we've filtered out all options, return the top 5 from all trailers
+  if (suitableTrailers.length === 0) {
+    console.log("No suitable trailers after filtering, returning basic matches");
+    return trailers.slice(0, 5);
   }
   
   // Sort the trailers based on best fit

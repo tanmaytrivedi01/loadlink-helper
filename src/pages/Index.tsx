@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +35,8 @@ const Index = () => {
     setDimensions(loadDimensions);
     setWeight(loadWeight);
     
+    console.log("Finding suitable trailers for:", loadDimensions, loadWeight);
+    
     const suitableTrailers = findSuitableTrailers(
       loadDimensions.length,
       loadDimensions.width,
@@ -43,7 +44,18 @@ const Index = () => {
       loadWeight
     );
     
+    console.log("Found trailers:", suitableTrailers.length);
+    
     if (suitableTrailers.length === 0) {
+      toast.error("No trailers found for your load. Please check dimensions and weight.");
+      return;
+    }
+    
+    if (!suitableTrailers.some(t => 
+      convertDimensionToFeet(loadDimensions.length) <= t.maxLength &&
+      convertDimensionToFeet(loadDimensions.width) <= t.maxWidth &&
+      convertDimensionToFeet(loadDimensions.height) <= t.maxHeight
+    )) {
       toast.warning("No exact trailer matches found. Showing closest options.");
     }
     
