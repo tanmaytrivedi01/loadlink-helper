@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,6 +42,10 @@ const Index = () => {
       loadDimensions.height,
       loadWeight
     );
+    
+    if (suitableTrailers.length === 0) {
+      toast.warning("No exact trailer matches found. Showing closest options.");
+    }
     
     setTrailers(suitableTrailers);
     setStep(2);

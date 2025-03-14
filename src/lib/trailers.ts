@@ -184,15 +184,37 @@ export function findSuitableTrailers(
   const heightFt = convertDimensionToFeet(height);
   const weightLbs = typeof weight === 'string' ? parseFloat(weight.toString().replace(/,/g, '')) : weight;
   
-  // Step 1: First get all trailers that can technically fit the load
+  // Get all trailers that can technically fit the load
   let suitableTrailers = trailers.filter(trailer => 
     lengthFt <= trailer.maxLength &&
     widthFt <= trailer.maxWidth &&
     heightFt <= trailer.maxHeight &&
     weightLbs <= trailer.maxWeight
   );
+
+  // If no trailers found at all, return the largest ones that are closest to accommodating the load
+  if (suitableTrailers.length === 0) {
+    // Return a few of the largest trailers available
+    return trailers
+      .sort((a, b) => {
+        // Sort by maximum dimensions and weight, prioritizing the trailer's strongest attribute
+        const aMax = Math.max(
+          a.maxLength / lengthFt,
+          a.maxWidth / widthFt, 
+          a.maxHeight / heightFt,
+          a.maxWeight / weightLbs
+        );
+        const bMax = Math.max(
+          b.maxLength / lengthFt,
+          b.maxWidth / widthFt,
+          b.maxHeight / heightFt,
+          b.maxWeight / weightLbs
+        );
+        return bMax - aMax; // Descending order
+      })
+      .slice(0, 3); // Get top 3 closest trailers
+  }
   
-  // Step 2: Apply more restrictive filtering for normal-sized loads
   // For standard loads, exclude specialized oversized equipment
   if (lengthFt <= 53 && widthFt <= 8.5 && heightFt <= 10 && weightLbs <= 45000) {
     // Standard loads should use standard equipment, no specialized trailers
@@ -204,7 +226,7 @@ export function findSuitableTrailers(
       trailer.maxLength <= 53    // Standard length only
     );
   } 
-  // Step 3: For medium loads, still exclude extreme equipment like Schnabel
+  // For medium loads, still exclude extreme equipment like Schnabel
   else if (lengthFt < 100 && weightLbs < 150000) {
     suitableTrailers = suitableTrailers.filter(trailer => 
       trailer.type !== "schnabel" &&
@@ -212,7 +234,7 @@ export function findSuitableTrailers(
     );
   }
   
-  // Step 4: Sort the trailers based on best fit
+  // Sort the trailers based on best fit
   return suitableTrailers.sort((a, b) => {
     // First sort by specialization - specialized trailers first for heavy/oversized loads
     if (weightLbs > 80000 || widthFt > 8.5 || heightFt > 9) {
