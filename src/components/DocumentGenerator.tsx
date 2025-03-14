@@ -144,7 +144,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
                 <h5 className="text-sm font-medium mb-2">Load Details</h5>
                 <div className="space-y-2 text-sm">
                   <p>Dimensions: <span className="font-medium">{loadDimensions.length} × {loadDimensions.width} × {loadDimensions.height}</span></p>
-                  <p>Weight: <span className="font-medium">{weight instanceof Number ? weight.toLocaleString() : weight} lbs</span></p>
+                  <p>Weight: <span className="font-medium">{typeof weight === 'number' ? weight.toLocaleString() : weight} lbs</span></p>
                   <p>Trailer Type: <span className="font-medium">{trailer.name}</span></p>
                   <p>Trailer Capacity: <span className="font-medium">{trailer.maxWeight.toLocaleString()} lbs</span></p>
                 </div>

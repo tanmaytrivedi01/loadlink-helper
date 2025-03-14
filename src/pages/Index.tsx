@@ -35,7 +35,6 @@ const Index = () => {
     setDimensions(loadDimensions);
     setWeight(loadWeight);
     
-    // Find suitable trailers
     const suitableTrailers = findSuitableTrailers(
       loadDimensions.length,
       loadDimensions.width,
@@ -105,8 +104,12 @@ const Index = () => {
               />
               <RouteMap
                 trailer={trailer}
-                loadDimensions={dimensions}
-                weight={weight}
+                loadDimensions={{
+                  length: Number(convertDimensionToFeet(dimensions.length)),
+                  width: Number(convertDimensionToFeet(dimensions.width)),
+                  height: Number(convertDimensionToFeet(dimensions.height))
+                }}
+                weight={Number(weight)}
                 onRouteSelect={handleRouteSelect}
               />
             </div>
