@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,13 +27,61 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
   const [generated, setGenerated] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'CAD'>('USD');
   
-  const mileRate = trailer.type === 'reefer' ? 3.25 : 2.75; // $/mile
-  const conversionRate = currency === 'CAD' ? 1.37 : 1;
-  const adjustedMileRate = mileRate * conversionRate;
+  // Updated rate calculation based on trailer type and load characteristics
+  const getBaseMileRate = () => {
+    // Base rates by trailer type (industry standard approximations)
+    const baseRates = {
+      flatbed: 2.75,
+      "step-deck": 3.15,
+      lowboy: 4.25,
+      van: 2.50,
+      reefer: 3.25,
+      rgn: 5.50,
+      extendable: 4.75,
+      perimeter: 5.25,
+      schnabel: 10.00
+    };
+    
+    // Get the base rate for this trailer type
+    const baseRate = baseRates[trailer.type as keyof typeof baseRates] || 3.50;
+    
+    // Check if the load is oversized or overweight
+    const loadWidthFt = typeof loadDimensions.width === 'number' 
+      ? loadDimensions.width 
+      : parseFloat(loadDimensions.width.toString());
+      
+    const loadWeightLbs = typeof weight === 'number' 
+      ? weight 
+      : parseFloat(weight.toString().replace(/,/g, ''));
+    
+    // Apply multipliers for oversized/overweight loads
+    let rateMultiplier = 1.0;
+    
+    // Width premium
+    if (loadWidthFt > 12) rateMultiplier *= 1.75;
+    else if (loadWidthFt > 10) rateMultiplier *= 1.5;
+    else if (loadWidthFt > 8.5) rateMultiplier *= 1.25;
+    
+    // Weight premium
+    if (loadWeightLbs > 200000) rateMultiplier *= 2.0;
+    else if (loadWeightLbs > 120000) rateMultiplier *= 1.6;
+    else if (loadWeightLbs > 80000) rateMultiplier *= 1.3;
+    
+    // If using specialized trailer, add premium
+    if (trailer.specializedFor) {
+      rateMultiplier *= 1.35;
+    }
+    
+    // Apply currency conversion if needed
+    const conversionRate = currency === 'CAD' ? 1.37 : 1;
+    
+    return baseRate * rateMultiplier * conversionRate;
+  };
   
-  const baseCost = route.totalDistance * adjustedMileRate;
-  const fuelSurcharge = route.totalDistance * 0.35 * conversionRate;
-  const additionalServices = documentType === 'invoice' ? 75 * conversionRate : 0;
+  const mileRate = getBaseMileRate();
+  const baseCost = route.totalDistance * mileRate;
+  const fuelSurcharge = route.totalDistance * 0.35 * (currency === 'CAD' ? 1.37 : 1);
+  const additionalServices = documentType === 'invoice' ? 75 * (currency === 'CAD' ? 1.37 : 1) : 0;
   
   const permitCosts = calculatePermitCosts(
     loadDimensions.length, 
