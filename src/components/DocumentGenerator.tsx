@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,9 +26,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
   const [generated, setGenerated] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'CAD'>('USD');
   
-  // Updated rate calculation based on trailer type and load characteristics
   const getBaseMileRate = () => {
-    // Base rates by trailer type (industry standard approximations)
     const baseRates = {
       flatbed: 2.75,
       "step-deck": 3.15,
@@ -42,10 +39,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       schnabel: 10.00
     };
     
-    // Get the base rate for this trailer type
     const baseRate = baseRates[trailer.type as keyof typeof baseRates] || 3.50;
     
-    // Check if the load is oversized or overweight
     const loadWidthFt = typeof loadDimensions.width === 'number' 
       ? loadDimensions.width 
       : parseFloat(loadDimensions.width.toString());
@@ -54,25 +49,20 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       ? weight 
       : parseFloat(weight.toString().replace(/,/g, ''));
     
-    // Apply multipliers for oversized/overweight loads
     let rateMultiplier = 1.0;
     
-    // Width premium
     if (loadWidthFt > 12) rateMultiplier *= 1.75;
     else if (loadWidthFt > 10) rateMultiplier *= 1.5;
     else if (loadWidthFt > 8.5) rateMultiplier *= 1.25;
     
-    // Weight premium
     if (loadWeightLbs > 200000) rateMultiplier *= 2.0;
     else if (loadWeightLbs > 120000) rateMultiplier *= 1.6;
     else if (loadWeightLbs > 80000) rateMultiplier *= 1.3;
     
-    // If using specialized trailer, add premium
     if (trailer.specializedFor) {
       rateMultiplier *= 1.35;
     }
     
-    // Apply currency conversion if needed
     const conversionRate = currency === 'CAD' ? 1.37 : 1;
     
     return baseRate * rateMultiplier * conversionRate;
@@ -100,12 +90,10 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
   
   const handleDownload = () => {
     toast.success(`${documentType === 'quote' ? 'Quote' : 'Invoice'} downloaded`);
-    // In a real app, this would generate and download a PDF document
   };
   
   const handleCopy = () => {
     toast.success('Link copied to clipboard');
-    // In a real app, this would copy a shareable link to the clipboard
   };
 
   const handleCurrencyChange = (value: 'USD' | 'CAD') => {
@@ -205,7 +193,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               
               <div className="border-t border-muted">
                 <div className="py-3 flex justify-between">
-                  <span className="text-sm">Base Rate ({formatDistance(route.totalDistance)} @ ${adjustedMileRate.toFixed(2)}/mile)</span>
+                  <span className="text-sm">Base Rate ({formatDistance(route.totalDistance)} @ ${mileRate.toFixed(2)}/mile)</span>
                   <span className="text-sm font-medium">{currency} ${baseCost.toFixed(2)}</span>
                 </div>
                 
