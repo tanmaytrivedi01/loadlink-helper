@@ -36,36 +36,36 @@ const TruckModel: React.FC<{
       </mesh>
       
       {/* Front wheels */}
-      <mesh position={[3, 0, 1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[3, 0, 1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
-      <mesh position={[3, 0, -1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[3, 0, -1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
       
       {/* Rear wheels (drive axles) */}
-      <mesh position={[-1.5, 0, 1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[-1.5, 0, 1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
-      <mesh position={[-1.5, 0, -1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[-1.5, 0, -1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
-      <mesh position={[-3, 0, 1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[-3, 0, 1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
-      <mesh position={[-3, 0, -1.5]}>
-        <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[-3, 0, -1.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.75, 16]} />
         <meshStandardMaterial color="#111111" />
       </mesh>
       
       {/* Fifth wheel */}
-      <mesh position={[-4, 1, 0]}>
-        <cylinderGeometry args={[1, 1, 0.5, 16]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[-4, 1, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1, 1, 0.5, 16]} />
         <meshStandardMaterial color="#555555" />
       </mesh>
     </group>
@@ -179,8 +179,8 @@ const TrailerModel: React.FC<{
       
       {/* Wheels */}
       {wheelPositions.map((pos, idx) => (
-        <mesh key={`wheel-${idx}`} position={pos}>
-          <cylinderGeometry args={[1, 1, 0.75, 16]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh key={`wheel-${idx}`} position={pos} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[1, 1, 0.75, 16]} />
           <meshStandardMaterial color="#111111" />
         </mesh>
       ))}
