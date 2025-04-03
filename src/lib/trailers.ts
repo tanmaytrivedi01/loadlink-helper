@@ -401,7 +401,10 @@ export function calculatePermitCosts(
     permitFee = 150; // Increased permit fee for oversized loads
     
     // Pilot car requirements
-    if (widthFt > 12 || heightFt > 14 || lengthFt > 85 || weightLbs > 120000) {
+    if (widthFt > 16) {
+      pilotCars = 3; // Three pilot cars for extremely wide loads
+      policeEscort = true;
+    } else if (widthFt > 12 || heightFt > 14 || lengthFt > 85 || weightLbs > 120000) {
       pilotCars = 2; // Front and rear pilot cars
       policeEscort = true;
     } else if (widthFt > 10 || heightFt > 14 || lengthFt > 75 || weightLbs > 100000) {
