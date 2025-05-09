@@ -1,6 +1,6 @@
 
 import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text, Line } from '@react-three/drei';
 import { Trailer } from '@/lib/trailers';
 import * as THREE from 'three';
@@ -179,7 +179,7 @@ const TrailerModel: React.FC<{
       
       {/* Wheels */}
       {wheelPositions.map((pos, idx) => (
-        <mesh key={`wheel-${idx}`} position={pos} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh key={`wheel-${idx}`} position={pos as [number, number, number]} rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[1, 1, 0.75, 16]} />
           <meshStandardMaterial color="#111111" />
         </mesh>
@@ -198,6 +198,7 @@ const TrailerModel: React.FC<{
         fontSize={0.8}
         anchorX="center"
         anchorY="bottom"
+        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`${trailerType.charAt(0).toUpperCase() + trailerType.slice(1)} Trailer (${dimensions.length}')`}
       </Text>
@@ -240,6 +241,7 @@ const LoadModel: React.FC<{
         fontSize={0.6}
         anchorX="center"
         anchorY="bottom"
+        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`Load (${dimensions.length}' x ${dimensions.width}' x ${dimensions.height}')`}
       </Text>
@@ -253,6 +255,7 @@ const MeasurementLines: React.FC<{
   loadLength: number;
 }> = ({ trailerLength, loadLength }) => {
   const lineColor = new THREE.Color("#ff3333");
+  const material = new THREE.LineBasicMaterial({ color: lineColor });
   
   return (
     <group position={[0, -3, 0]}>
@@ -264,6 +267,7 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       
       {/* Load length line */}
@@ -274,6 +278,7 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       
       {/* End markers for trailer */}
@@ -284,6 +289,7 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       <Line
         points={[
@@ -292,6 +298,7 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       
       {/* End markers for load */}
@@ -302,6 +309,7 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       <Line
         points={[
@@ -310,13 +318,26 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
+        material={material}
       />
       
       {/* Labels */}
-      <Text position={[0, 0, 0]} color="black" fontSize={0.7} anchorY="top">
+      <Text 
+        position={[0, 0, 0]} 
+        color="black" 
+        fontSize={0.7} 
+        anchorY="top"
+        material={new THREE.MeshBasicMaterial({ color: "black" })}
+      >
         {`Trailer: ${trailerLength}'`}
       </Text>
-      <Text position={[0, 1, 0]} color="black" fontSize={0.7} anchorY="top">
+      <Text 
+        position={[0, 1, 0]} 
+        color="black" 
+        fontSize={0.7} 
+        anchorY="top"
+        material={new THREE.MeshBasicMaterial({ color: "black" })}
+      >
         {`Load: ${loadLength}'`}
       </Text>
     </group>
@@ -348,7 +369,11 @@ const LoadVisualizer3D: React.FC<LoadVisualizer3DProps> = ({ trailer, loadDimens
           intensity={1} 
           castShadow 
         />
-        <PerspectiveCamera makeDefault position={[0, 5, 20]} />
+        <PerspectiveCamera 
+          makeDefault 
+          position={[0, 5, 20]} 
+          fov={75}
+        />
         <OrbitControls 
           enablePan={true}
           enableZoom={true}
