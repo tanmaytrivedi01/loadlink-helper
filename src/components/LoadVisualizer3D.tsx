@@ -193,7 +193,6 @@ const TrailerModel: React.FC<{
       
       {/* Label */}
       <Text
-        key="trailer-label"
         position={[0, dimensions.height + 1, 0]}
         color="black"
         fontSize={0.8}
@@ -236,7 +235,6 @@ const LoadModel: React.FC<{
       <boxGeometry args={[dimensions.length, dimensions.height, dimensions.width]} />
       <meshStandardMaterial color="#3b82f6" />
       <Text
-        key="load-label"
         position={[0, dimensions.height / 2 + 0.5, 0]}
         color="black"
         fontSize={0.6}
@@ -260,7 +258,6 @@ const MeasurementLines: React.FC<{
     <group position={[0, -3, 0]}>
       {/* Trailer length line */}
       <Line
-        key="trailer-line"
         points={[
           [-trailerLength/2, 0, 0],
           [trailerLength/2, 0, 0]
@@ -271,7 +268,6 @@ const MeasurementLines: React.FC<{
       
       {/* Load length line */}
       <Line
-        key="load-line"
         points={[
           [-loadLength/2, 1, 0],
           [loadLength/2, 1, 0]
@@ -282,7 +278,6 @@ const MeasurementLines: React.FC<{
       
       {/* End markers for trailer */}
       <Line
-        key="trailer-start-marker"
         points={[
           [-trailerLength/2, -0.5, 0],
           [-trailerLength/2, 0.5, 0]
@@ -291,7 +286,6 @@ const MeasurementLines: React.FC<{
         lineWidth={1}
       />
       <Line
-        key="trailer-end-marker"
         points={[
           [trailerLength/2, -0.5, 0],
           [trailerLength/2, 0.5, 0]
@@ -302,7 +296,6 @@ const MeasurementLines: React.FC<{
       
       {/* End markers for load */}
       <Line
-        key="load-start-marker"
         points={[
           [-loadLength/2, 0.5, 0],
           [-loadLength/2, 1.5, 0]
@@ -311,7 +304,6 @@ const MeasurementLines: React.FC<{
         lineWidth={1}
       />
       <Line
-        key="load-end-marker"
         points={[
           [loadLength/2, 0.5, 0],
           [loadLength/2, 1.5, 0]
@@ -322,7 +314,6 @@ const MeasurementLines: React.FC<{
       
       {/* Labels */}
       <Text 
-        key="trailer-label"
         position={[0, 0, 0]} 
         color="black" 
         fontSize={0.7} 
@@ -331,7 +322,6 @@ const MeasurementLines: React.FC<{
         {`Trailer: ${trailerLength}'`}
       </Text>
       <Text 
-        key="load-label"
         position={[0, 1, 0]} 
         color="black" 
         fontSize={0.7} 
@@ -372,8 +362,6 @@ const LoadVisualizer3D: React.FC<LoadVisualizer3DProps> = ({ trailer, loadDimens
           makeDefault
           position={[0, 5, 20]} 
           fov={75}
-          near={0.1}
-          far={1000}
         />
         <OrbitControls 
           enablePan={true}
