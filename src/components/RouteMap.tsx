@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { AlertCircle, MapPin, Truck, Clock, Scale, Info } from 'lucide-react';
+import { AlertCircle, MapPin, Truck, Clock, Scale, Info, Map } from 'lucide-react';
 import { RoutePoint, Route, findRoute, routePoints, formatDistance, formatTime } from '@/lib/routes';
 import { Trailer } from '@/lib/trailers';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
   const [origin, setOrigin] = useState<string>("nyc");
   const [destination, setDestination] = useState<string>("chi");
   const [route, setRoute] = useState<Route | null>(null);
+  const [mapUrl, setMapUrl] = useState<string>("");
 
   const handleFindRoute = () => {
     try {
@@ -38,6 +39,15 @@ const RouteMap: React.FC<RouteMapProps> = ({
       
       setRoute(calculatedRoute);
       onRouteSelect(calculatedRoute);
+
+      // Create Google Maps URL for the route
+      const originPoint = routePoints.find(p => p.id === origin);
+      const destPoint = routePoints.find(p => p.id === destination);
+      if (originPoint && destPoint) {
+        const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${originPoint.lat},${originPoint.lng}&destination=${destPoint.lat},${destPoint.lng}&mode=driving`;
+        setMapUrl(mapUrl);
+      }
+      
       toast.success('Route calculated successfully');
     } catch (error) {
       toast.error('Failed to calculate route');
@@ -168,11 +178,30 @@ const RouteMap: React.FC<RouteMapProps> = ({
             
             <div className="mt-8">
               <p className="text-sm text-muted-foreground mb-2">Route Preview</p>
-              <div className="h-48 w-full bg-muted/30 rounded-md flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  Map would be displayed here in a full application
-                </p>
-              </div>
+              
+              {mapUrl ? (
+                <iframe
+                  title="Route Map"
+                  width="100%"
+                  height="300"
+                  frameBorder="0"
+                  src={mapUrl}
+                  allowFullScreen
+                  className="rounded-md"
+                ></iframe>
+              ) : (
+                <div className="h-48 w-full bg-muted/30 rounded-md flex items-center justify-center">
+                  <div className="flex flex-col items-center text-muted-foreground">
+                    <Map className="h-8 w-8 mb-2" />
+                    <p>Google Maps preview would be displayed here</p>
+                    <p className="text-xs">(Requires API key setup)</p>
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground mt-2">
+                Total Distance: {formatDistance(route.totalDistance)} • Total Estimated Time: {formatTime(route.totalTime)}
+              </p>
             </div>
             
             <Button

@@ -1,13 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Download, FileText, Clipboard, CreditCard, Check } from 'lucide-react';
+import { Download, FileText, Clipboard, CreditCard, Check, Mail, Phone } from 'lucide-react';
 import { Route, formatDistance, formatTime } from '@/lib/routes';
 import { Trailer, calculatePermitCosts } from '@/lib/trailers';
 import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import CustomerContactForm from '@/components/CustomerContactForm';
 
 interface DocumentGeneratorProps {
   trailer: Trailer;
@@ -25,6 +27,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
   const [documentType, setDocumentType] = useState<'quote' | 'invoice'>('quote');
   const [generated, setGenerated] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'CAD'>('USD');
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactFormType, setContactFormType] = useState<'quote' | 'connect'>('quote');
   
   const getBaseMileRate = () => {
     const baseRates = {
@@ -100,6 +104,31 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
     setCurrency(value);
     toast.success(`Switched to ${value} rates`);
   };
+  
+  const handleContactOption = (type: 'quote' | 'connect') => {
+    setContactFormType(type);
+    setShowContactForm(true);
+  };
+  
+  const handleContactSubmit = (values: any) => {
+    if (contactFormType === 'quote') {
+      toast.success(`Quote sent to ${values.email}`);
+    } else {
+      toast.success(`Your information has been sent to our trucking partners. Someone will contact you shortly.`);
+    }
+    setShowContactForm(false);
+  };
+
+  // If showing contact form, render that instead of the quote/invoice
+  if (showContactForm) {
+    return (
+      <CustomerContactForm 
+        onSubmit={handleContactSubmit}
+        submitLabel={contactFormType === 'quote' ? 'Send Quote' : 'Connect Me with Carriers'}
+        isQuote={contactFormType === 'quote'}
+      />
+    );
+  }
 
   return (
     <motion.div
@@ -188,6 +217,28 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               </div>
             </div>
             
+            {/* Google Maps Route Preview */}
+            <div className="mt-4 mb-8">
+              <h5 className="text-sm font-medium mb-3">Route Preview</h5>
+              <div className="h-48 w-full bg-muted/30 rounded-md flex items-center justify-center overflow-hidden">
+                <iframe
+                  title="Google Maps Route"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  src={`https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${route.segments[0].from.lat},${route.segments[0].from.lng}&destination=${route.segments[0].to.lat},${route.segments[0].to.lng}&mode=driving`}
+                  allowFullScreen
+                  className="rounded-md"
+                ></iframe>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                  <p className="text-white text-sm">Total Distance: {formatDistance(route.totalDistance)}</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Route Map: {route.segments[0].from.name} to {route.segments[0].to.name} • {formatDistance(route.totalDistance)} • {formatTime(route.totalTime)}
+              </p>
+            </div>
+            
             <div className="mt-8">
               <h5 className="text-sm font-medium mb-3">Pricing Breakdown</h5>
               
@@ -260,7 +311,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
           {!generated ? (
             <Button
               className="w-full bg-primary hover:bg-primary/90"
@@ -271,22 +322,44 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
             </Button>
           ) : (
             <>
-              <Button
-                className="flex-1 bg-primary hover:bg-primary/90"
-                onClick={handleDownload}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
+              <div className="flex flex-col md:flex-row gap-2">
+                <Button
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleCopy}
+                >
+                  <Clipboard className="h-4 w-4 mr-2" />
+                  Copy Share Link
+                </Button>
+              </div>
               
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={handleCopy}
-              >
-                <Clipboard className="h-4 w-4 mr-2" />
-                Copy Share Link
-              </Button>
+              <div className="flex flex-col md:flex-row gap-2">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => handleContactOption('quote')}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email Quote
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleContactOption('connect')}
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Connect with Carrier
+                </Button>
+              </div>
             </>
           )}
         </div>
