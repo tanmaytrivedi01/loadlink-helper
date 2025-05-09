@@ -1,6 +1,6 @@
 
 import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text, Line } from '@react-three/drei';
 import { Trailer } from '@/lib/trailers';
 import * as THREE from 'three';
@@ -193,12 +193,12 @@ const TrailerModel: React.FC<{
       
       {/* Label */}
       <Text
+        key="trailer-label"
         position={[0, dimensions.height + 1, 0]}
         color="black"
         fontSize={0.8}
         anchorX="center"
         anchorY="bottom"
-        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`${trailerType.charAt(0).toUpperCase() + trailerType.slice(1)} Trailer (${dimensions.length}')`}
       </Text>
@@ -236,12 +236,12 @@ const LoadModel: React.FC<{
       <boxGeometry args={[dimensions.length, dimensions.height, dimensions.width]} />
       <meshStandardMaterial color="#3b82f6" />
       <Text
+        key="load-label"
         position={[0, dimensions.height / 2 + 0.5, 0]}
         color="black"
         fontSize={0.6}
         anchorX="center"
         anchorY="bottom"
-        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`Load (${dimensions.length}' x ${dimensions.width}' x ${dimensions.height}')`}
       </Text>
@@ -255,88 +255,87 @@ const MeasurementLines: React.FC<{
   loadLength: number;
 }> = ({ trailerLength, loadLength }) => {
   const lineColor = new THREE.Color("#ff3333");
-  const material = new THREE.LineBasicMaterial({ color: lineColor });
   
   return (
     <group position={[0, -3, 0]}>
       {/* Trailer length line */}
       <Line
+        key="trailer-line"
         points={[
           [-trailerLength/2, 0, 0],
           [trailerLength/2, 0, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       
       {/* Load length line */}
       <Line
+        key="load-line"
         points={[
           [-loadLength/2, 1, 0],
           [loadLength/2, 1, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       
       {/* End markers for trailer */}
       <Line
+        key="trailer-start-marker"
         points={[
           [-trailerLength/2, -0.5, 0],
           [-trailerLength/2, 0.5, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       <Line
+        key="trailer-end-marker"
         points={[
           [trailerLength/2, -0.5, 0],
           [trailerLength/2, 0.5, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       
       {/* End markers for load */}
       <Line
+        key="load-start-marker"
         points={[
           [-loadLength/2, 0.5, 0],
           [-loadLength/2, 1.5, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       <Line
+        key="load-end-marker"
         points={[
           [loadLength/2, 0.5, 0],
           [loadLength/2, 1.5, 0]
         ]}
         color={lineColor}
         lineWidth={1}
-        material={material}
       />
       
       {/* Labels */}
       <Text 
+        key="trailer-label"
         position={[0, 0, 0]} 
         color="black" 
         fontSize={0.7} 
         anchorY="top"
-        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`Trailer: ${trailerLength}'`}
       </Text>
       <Text 
+        key="load-label"
         position={[0, 1, 0]} 
         color="black" 
         fontSize={0.7} 
         anchorY="top"
-        material={new THREE.MeshBasicMaterial({ color: "black" })}
       >
         {`Load: ${loadLength}'`}
       </Text>
@@ -370,9 +369,11 @@ const LoadVisualizer3D: React.FC<LoadVisualizer3DProps> = ({ trailer, loadDimens
           castShadow 
         />
         <PerspectiveCamera 
-          makeDefault 
+          makeDefault
           position={[0, 5, 20]} 
           fov={75}
+          near={0.1}
+          far={1000}
         />
         <OrbitControls 
           enablePan={true}

@@ -1,10 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Plane, MapPin, Search, User } from 'lucide-react';
+import { Plane, MapPin, Search, User, Menu, X } from 'lucide-react';
 
 const Header: React.FC = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <motion.header 
       initial={{ opacity: 0, y: -20 }}
@@ -26,6 +32,7 @@ const Header: React.FC = () => {
           </div>
         </div>
         
+        {/* Desktop navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">Shipping</a>
           <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">Routes</a>
@@ -42,8 +49,41 @@ const Header: React.FC = () => {
             <User className="h-4 w-4" />
             <span className="hidden md:inline">Sign in</span>
           </Button>
+          
+          {/* Mobile menu button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="md:hidden"
+            onClick={toggleMobileMenu}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
       </div>
+      
+      {/* Mobile navigation */}
+      {mobileMenuOpen && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="md:hidden bg-white px-4 py-3 mt-2 shadow-lg rounded-b-lg"
+        >
+          <nav className="flex flex-col space-y-3">
+            <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-1">Shipping</a>
+            <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-1">Routes</a>
+            <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-1">Pricing</a>
+            <a href="#" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-1">Partners</a>
+            <div className="pt-2">
+              <Button variant="ghost" size="sm" className="w-full flex items-center justify-center gap-1 mb-2">
+                <Search className="h-4 w-4" />
+                <span>Search</span>
+              </Button>
+            </div>
+          </nav>
+        </motion.div>
+      )}
     </motion.header>
   );
 };
