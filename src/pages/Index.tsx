@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,6 +83,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            className="w-full"
           >
             <ImageUpload onImageUploaded={handleImageUploaded} />
           </motion.div>
@@ -93,6 +95,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            className="w-full"
           >
             <TrailerMatch
               trailers={trailers}
@@ -109,6 +112,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            className="w-full"
           >
             <div className="space-y-8">
               <LoadVisualizer
@@ -139,6 +143,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            className="w-full"
           >
             <DocumentGenerator
               trailer={trailer}
@@ -153,44 +158,45 @@ const Index = () => {
     }
   };
 
+  // Google Flights inspired tab names
   const getStepTitle = (currentStep: number) => {
     switch (currentStep) {
       case 1:
-        return 'Upload Load';
+        return 'Load Details';
       case 2:
-        return 'Match Trailer';
+        return 'Select Trailer';
       case 3:
-        return 'Plan Route';
+        return 'Select Route';
       case 4:
-        return 'Generate Documents';
+        return 'Quote & Book';
       default:
         return '';
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       
-      <main className="flex-1 container mx-auto px-6 py-24">
+      <main className="flex-1 w-full mx-auto py-8 px-4 sm:px-6 md:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto text-center mb-12"
+          className="max-w-4xl mx-auto text-center mb-8"
         >
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-            Smart Load Matching
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2 text-slate-900">
+            Smart Load Transport
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Upload your load, find the perfect trailer, and plan your route in minutes.
+          <p className="text-lg text-slate-600">
+            Find the perfect trailer, route, and pricing for your load
           </p>
         </motion.div>
         
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-6 sticky top-16 bg-slate-50 pt-2 pb-4 z-10 shadow-sm">
             <Tabs value={step.toString()} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-4 p-1 bg-slate-100 rounded-xl">
                 {[1, 2, 3, 4].map((tabStep) => (
                   <TabsTrigger
                     key={tabStep}
@@ -201,9 +207,18 @@ const Index = () => {
                         setStep(tabStep);
                       }
                     }}
+                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all 
+                      ${step >= tabStep ? 'text-slate-900' : 'text-slate-500'} 
+                      ${tabStep === step ? 'bg-white shadow-sm' : ''}
+                      ${tabStep < step ? 'hover:bg-slate-200/70' : ''}`}
                   >
-                    <span className="hidden sm:inline">{getStepTitle(tabStep)}</span>
-                    <span className="sm:hidden">{tabStep}</span>
+                    <div className="flex items-center">
+                      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs mr-2">
+                        {tabStep}
+                      </span>
+                      <span className="hidden sm:inline">{getStepTitle(tabStep)}</span>
+                      <span className="sm:hidden">{tabStep}</span>
+                    </div>
                   </TabsTrigger>
                 ))}
               </TabsList>

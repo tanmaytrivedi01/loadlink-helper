@@ -1,42 +1,108 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+:root {
+  --primary-color: hsl(215, 100%, 50%);
+  --primary-hover: hsl(215, 100%, 45%);
+  --google-blue: hsl(217, 89%, 61%);
+  --google-text: hsl(217, 19%, 27%);
+  --google-bg: hsl(210, 20%, 98%);
+  --google-border: hsl(214, 25%, 90%);
+  --google-accent: hsl(215, 100%, 50%);
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 4em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+  filter: drop-shadow(0 0 1em var(--primary-color));
 }
 
 .card {
-  padding: 2em;
+  padding: 1.5em;
+  border-radius: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.read-the-docs {
-  color: #888;
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Google Flights inspired styles */
+.flight-card {
+  border: 1px solid var(--google-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.flight-card-header {
+  background-color: white;
+  padding: 1em;
+  border-bottom: 1px solid var(--google-border);
+}
+
+.flight-card-body {
+  padding: 1em;
+  background-color: white;
+}
+
+.flight-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Google Flights inspired form controls */
+.google-select {
+  padding: 0.75em 1em;
+  border: 1px solid var(--google-border);
+  border-radius: 0.375rem;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.google-select:focus {
+  outline: 2px solid var(--google-accent);
+  outline-offset: 1px;
+}
+
+.google-button {
+  background-color: var(--google-blue);
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.google-button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Flight route visualization */
+.route-line {
+  position: relative;
+  height: 2px;
+  background: var(--google-blue);
+  margin: 0 10px;
+}
+
+.route-line::before,
+.route-line::after {
+  content: '';
+  position: absolute;
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: var(--google-blue);
+  top: -2px;
+}
+
+.route-line::before {
+  left: 0;
+}
+
+.route-line::after {
+  right: 0;
 }

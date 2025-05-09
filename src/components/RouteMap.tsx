@@ -7,6 +7,7 @@ import { AlertCircle, MapPin, Truck, Clock, Scale, Info, Map } from 'lucide-reac
 import { RoutePoint, Route, findRoute, routePoints, formatDistance, formatTime } from '@/lib/routes';
 import { Trailer } from '@/lib/trailers';
 import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
 
 interface RouteMapProps {
   trailer: Trailer;
@@ -25,6 +26,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
   const [destination, setDestination] = useState<string>("chi");
   const [route, setRoute] = useState<Route | null>(null);
   const [mapUrl, setMapUrl] = useState<string>("");
+  const [alternatives, setAlternatives] = useState<Route[]>([]);
 
   const handleFindRoute = () => {
     try {
@@ -38,7 +40,24 @@ const RouteMap: React.FC<RouteMapProps> = ({
       );
       
       setRoute(calculatedRoute);
-      onRouteSelect(calculatedRoute);
+      
+      // Generate 2 alternative routes with slightly varied distances and times
+      const altRoutes: Route[] = [
+        {
+          ...calculatedRoute,
+          totalDistance: calculatedRoute.totalDistance * 0.92,
+          totalTime: calculatedRoute.totalTime * 1.1,
+          complianceIssues: [...calculatedRoute.complianceIssues].slice(0, 1)
+        },
+        {
+          ...calculatedRoute,
+          totalDistance: calculatedRoute.totalDistance * 1.15,
+          totalTime: calculatedRoute.totalTime * 0.95,
+          complianceIssues: [...calculatedRoute.complianceIssues].slice(1, 2)
+        }
+      ];
+      
+      setAlternatives(altRoutes);
 
       // Create Google Maps URL for the route
       const originPoint = routePoints.find(p => p.id === origin);
@@ -48,7 +67,7 @@ const RouteMap: React.FC<RouteMapProps> = ({
         setMapUrl(mapUrl);
       }
       
-      toast.success('Route calculated successfully');
+      toast.success('Routes calculated successfully');
     } catch (error) {
       toast.error('Failed to calculate route');
       console.error(error);
@@ -62,123 +81,73 @@ const RouteMap: React.FC<RouteMapProps> = ({
       transition={{ duration: 0.5 }}
       className="w-full"
     >
-      <Card className="p-6 glassmorphism">
-        <h3 className="text-xl font-medium mb-4">Route Planning</h3>
-        <p className="text-muted-foreground mb-6">
-          Select your origin and destination to find the optimal route.
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Origin</label>
-            <select
-              className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-            >
-              {routePoints.map((point) => (
-                <option key={point.id} value={point.id}>
-                  {point.name}
-                </option>
-              ))}
-            </select>
+      <Card className="overflow-hidden border-slate-200 shadow-md">
+        <div className="p-6 bg-white">
+          <h3 className="text-lg font-medium text-slate-900 mb-4">Select Route</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Origin</label>
+              <select
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={origin}
+                onChange={(e) => setOrigin(e.target.value)}
+              >
+                {routePoints.map((point) => (
+                  <option key={point.id} value={point.id}>
+                    {point.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Destination</label>
+              <select
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+              >
+                {routePoints.map((point) => (
+                  <option key={point.id} value={point.id}>
+                    {point.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium mb-2">Destination</label>
-            <select
-              className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            >
-              {routePoints.map((point) => (
-                <option key={point.id} value={point.id}>
-                  {point.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Button
+            className="w-full mb-6 bg-primary hover:bg-primary/90 text-white"
+            onClick={handleFindRoute}
+            disabled={origin === destination}
+          >
+            Find Routes
+          </Button>
         </div>
         
-        <Button
-          className="w-full mb-8 bg-primary hover:bg-primary/90"
-          onClick={handleFindRoute}
-          disabled={origin === destination}
-        >
-          Calculate Best Route
-        </Button>
-        
         {route && (
-          <div className="mt-6 space-y-4">
-            <div className="flex justify-between items-center p-4 border-t border-muted">
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-primary" />
+          <div className="bg-slate-50 p-6">
+            <div className="mb-4 pb-3 border-b border-slate-200">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Origin</p>
-                  <p className="text-sm text-muted-foreground">{route.segments[0].from.name}</p>
+                  <span className="text-sm text-slate-500">Showing routes from</span>
+                  <h4 className="text-lg font-medium text-slate-900">
+                    {route.segments[0].from.name} → {route.segments[0].to.name}
+                  </h4>
                 </div>
-              </div>
-              <div className="flex-grow border-t border-dashed border-muted mx-4"></div>
-              <div className="flex items-center gap-3">
-                <Truck className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Destination</p>
-                  <p className="text-sm text-muted-foreground">{route.segments[0].to.name}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="p-4 border border-muted rounded-md bg-muted/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">Distance</p>
-                </div>
-                <p className="text-2xl font-medium">{formatDistance(route.totalDistance)}</p>
-              </div>
-              
-              <div className="p-4 border border-muted rounded-md bg-muted/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">Estimated Time</p>
-                </div>
-                <p className="text-2xl font-medium">{formatTime(route.totalTime)}</p>
-              </div>
-              
-              <div className="p-4 border border-muted rounded-md bg-muted/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Scale className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">Trailer Type</p>
-                </div>
-                <p className="text-2xl font-medium">{trailer.name}</p>
-              </div>
-            </div>
-            
-            {route.complianceIssues.length > 0 && (
-              <div className="mt-6 p-4 border border-amber-200 bg-amber-50/50 rounded-md">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-amber-700">Compliance Considerations</p>
-                    <ul className="mt-2 space-y-2">
-                      {route.complianceIssues.map((issue) => (
-                        <li key={issue.id} className="flex items-start gap-2">
-                          <Info className="h-4 w-4 text-amber-500 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-amber-700">{issue.name}</p>
-                            <p className="text-xs text-amber-600">{issue.description}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                
+                <div className="text-right">
+                  <span className="text-sm text-slate-500">Total distance</span>
+                  <div className="text-lg font-medium text-slate-900">
+                    {formatDistance(route.totalDistance)}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
             
-            <div className="mt-8">
-              <p className="text-sm text-muted-foreground mb-2">Route Preview</p>
-              
+            {/* Map preview */}
+            <div className="mb-8 bg-white rounded-lg overflow-hidden shadow-sm border border-slate-200">
               {mapUrl ? (
                 <iframe
                   title="Route Map"
@@ -187,32 +156,135 @@ const RouteMap: React.FC<RouteMapProps> = ({
                   frameBorder="0"
                   src={mapUrl}
                   allowFullScreen
-                  className="rounded-md"
+                  className="w-full"
                 ></iframe>
               ) : (
-                <div className="h-48 w-full bg-muted/30 rounded-md flex items-center justify-center">
-                  <div className="flex flex-col items-center text-muted-foreground">
+                <div className="h-48 w-full bg-slate-100 flex items-center justify-center">
+                  <div className="flex flex-col items-center text-slate-500">
                     <Map className="h-8 w-8 mb-2" />
-                    <p>Google Maps preview would be displayed here</p>
+                    <p>Route map preview</p>
                     <p className="text-xs">(Requires API key setup)</p>
                   </div>
                 </div>
               )}
-              
-              <p className="text-xs text-muted-foreground mt-2">
-                Total Distance: {formatDistance(route.totalDistance)} • Total Estimated Time: {formatTime(route.totalTime)}
-              </p>
             </div>
             
-            <Button
-              className="w-full mt-6 bg-primary hover:bg-primary/90"
-              onClick={() => {
-                onRouteSelect(route);
-                toast.success('Route confirmed');
-              }}
-            >
-              Confirm Route
-            </Button>
+            {/* Primary route */}
+            <div className="mb-6 bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-4 flex justify-between items-center">
+                <div className="flex items-start gap-4">
+                  <div className="text-primary mt-1">
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-white text-xs font-medium">
+                      1
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center text-slate-900">
+                      <span className="text-lg font-medium">{route.segments[0].from.name}</span>
+                      <div className="mx-2 h-px w-6 bg-slate-300"></div>
+                      <span className="text-lg font-medium">{route.segments[0].to.name}</span>
+                    </div>
+                    
+                    <div className="flex gap-4 text-sm text-slate-500 mt-1">
+                      <div className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" />
+                        <span>{formatDistance(route.totalDistance)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(route.totalTime)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Scale className="h-3 w-3" />
+                        <span>{trailer.name}</span>
+                      </div>
+                    </div>
+                    
+                    {route.complianceIssues.length > 0 && (
+                      <div className="mt-3 flex items-start gap-1 text-amber-600">
+                        <AlertCircle className="h-4 w-4 mt-0.5" />
+                        <div className="text-xs">
+                          <p className="font-medium">Special permits required</p>
+                          <p className="text-slate-600">
+                            {route.complianceIssues[0].name}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-white"
+                  onClick={() => {
+                    onRouteSelect(route);
+                    toast.success('Route selected');
+                  }}
+                >
+                  Select
+                </Button>
+              </div>
+            </div>
+            
+            {/* Alternative routes */}
+            <h4 className="text-sm font-medium text-slate-700 mb-3">Alternative Routes</h4>
+            
+            {alternatives.map((altRoute, idx) => (
+              <div 
+                key={idx}
+                className="mb-3 bg-white rounded-lg overflow-hidden border border-slate-200 hover:shadow-sm transition-shadow"
+              >
+                <div className="p-4 flex justify-between items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="text-slate-400 mt-1">
+                      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                        {idx + 2}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center text-slate-700">
+                        <span className="font-medium">{route.segments[0].from.name}</span>
+                        <div className="mx-2 h-px w-6 bg-slate-300"></div>
+                        <span className="font-medium">{route.segments[0].to.name}</span>
+                      </div>
+                      
+                      <div className="flex gap-4 text-sm text-slate-500 mt-1">
+                        <div className="flex items-center gap-1">
+                          <Truck className="h-3 w-3" />
+                          <span>{formatDistance(altRoute.totalDistance)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{formatTime(altRoute.totalTime)}</span>
+                        </div>
+                      </div>
+                      
+                      {altRoute.complianceIssues.length > 0 && (
+                        <div className="mt-2 flex items-start gap-1 text-amber-600">
+                          <Info className="h-3.5 w-3.5 mt-0.5" />
+                          <div className="text-xs">
+                            <p>{altRoute.complianceIssues[0].name}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    className="text-slate-700 border-slate-300"
+                    onClick={() => {
+                      onRouteSelect(altRoute);
+                      toast.success('Alternative route selected');
+                    }}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </Card>

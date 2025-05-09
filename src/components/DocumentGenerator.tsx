@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Download, FileText, Clipboard, CreditCard, Check, Mail, Phone } from 'lucide-react';
+import { Download, FileText, Clipboard, CreditCard, Check, Mail, Phone, Calendar, User } from 'lucide-react';
 import { Route, formatDistance, formatTime } from '@/lib/routes';
 import { Trailer, calculatePermitCosts } from '@/lib/trailers';
 import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import CustomerContactForm from '@/components/CustomerContactForm';
 
 interface DocumentGeneratorProps {
@@ -137,230 +138,242 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       transition={{ duration: 0.5 }}
       className="w-full"
     >
-      <Card className="p-6 glassmorphism">
-        <h3 className="text-xl font-medium mb-4">Document Generator</h3>
-        <p className="text-muted-foreground mb-6">
-          Generate quotes and invoices for your shipment.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex space-x-4">
-            <Button
-              variant={documentType === 'quote' ? 'default' : 'outline'}
-              className={documentType === 'quote' ? 'bg-primary hover:bg-primary/90' : ''}
-              onClick={() => setDocumentType('quote')}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Quote
-            </Button>
-            <Button
-              variant={documentType === 'invoice' ? 'default' : 'outline'}
-              className={documentType === 'invoice' ? 'bg-primary hover:bg-primary/90' : ''}
-              onClick={() => setDocumentType('invoice')}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Invoice
-            </Button>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">Currency:</span>
-            <RadioGroup 
-              value={currency} 
-              onValueChange={(value) => handleCurrencyChange(value as 'USD' | 'CAD')}
-              className="flex space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="USD" id="doc-usd" />
-                <Label htmlFor="doc-usd">USD</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="CAD" id="doc-cad" />
-                <Label htmlFor="doc-cad">CAD</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </div>
-        
-        <div className="border border-muted rounded-lg overflow-hidden">
-          <div className="bg-muted/10 p-4 border-b border-muted">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium">{documentType === 'quote' ? 'Freight Quote' : 'Freight Invoice'}</h4>
-              
-              <div className="flex items-center text-xs text-muted-foreground">
-                <span>Document #:</span>
-                <span className="ml-2 font-mono">{documentType === 'quote' ? 'Q-' : 'INV-'}10042</span>
-              </div>
+      <Card className="overflow-hidden border-slate-200 shadow-md">
+        <div className="p-6 bg-white">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 className="text-lg font-medium text-slate-900">
+              Quote & Booking
+            </h3>
+            
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-slate-600">Currency:</span>
+              <RadioGroup 
+                value={currency} 
+                onValueChange={(value) => handleCurrencyChange(value as 'USD' | 'CAD')}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="USD" id="doc-usd" />
+                  <Label htmlFor="doc-usd" className="text-sm">USD</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="CAD" id="doc-cad" />
+                  <Label htmlFor="doc-cad" className="text-sm">CAD</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
           
-          <div className="p-6">
+          <div className="mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h5 className="text-sm font-medium mb-2">Route Details</h5>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <h4 className="text-sm font-medium text-slate-900 mb-2">Route Summary</h4>
                 <div className="space-y-2 text-sm">
-                  <p>Origin: <span className="font-medium">{route.segments[0].from.name}</span></p>
-                  <p>Destination: <span className="font-medium">{route.segments[0].to.name}</span></p>
-                  <p>Distance: <span className="font-medium">{formatDistance(route.totalDistance)}</span></p>
-                  <p>Estimated Transit Time: <span className="font-medium">{formatTime(route.totalTime)}</span></p>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Origin:</span>
+                    <span className="font-medium text-slate-900">{route.segments[0].from.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Destination:</span>
+                    <span className="font-medium text-slate-900">{route.segments[0].to.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Distance:</span>
+                    <span className="font-medium text-slate-900">{formatDistance(route.totalDistance)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Transit Time:</span>
+                    <span className="font-medium text-slate-900">{formatTime(route.totalTime)}</span>
+                  </div>
                 </div>
               </div>
               
-              <div>
-                <h5 className="text-sm font-medium mb-2">Load Details</h5>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <h4 className="text-sm font-medium text-slate-900 mb-2">Shipment Details</h4>
                 <div className="space-y-2 text-sm">
-                  <p>Dimensions: <span className="font-medium">{loadDimensions.length} × {loadDimensions.width} × {loadDimensions.height}</span></p>
-                  <p>Weight: <span className="font-medium">{typeof weight === 'number' ? weight.toLocaleString() : weight} lbs</span></p>
-                  <p>Trailer Type: <span className="font-medium">{trailer.name}</span></p>
-                  <p>Trailer Capacity: <span className="font-medium">{trailer.maxWeight.toLocaleString()} lbs</span></p>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Dimensions:</span>
+                    <span className="font-medium text-slate-900">{loadDimensions.length}' × {loadDimensions.width}' × {loadDimensions.height}'</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Weight:</span>
+                    <span className="font-medium text-slate-900">{typeof weight === 'number' ? weight.toLocaleString() : weight} lbs</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Trailer Type:</span>
+                    <span className="font-medium text-slate-900">{trailer.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Trailer Capacity:</span>
+                    <span className="font-medium text-slate-900">{trailer.maxWeight.toLocaleString()} lbs</span>
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Google Maps Route Preview */}
-            <div className="mt-4 mb-8">
-              <h5 className="text-sm font-medium mb-3">Route Preview</h5>
-              <div className="h-48 w-full bg-muted/30 rounded-md flex items-center justify-center overflow-hidden">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-6">
+              <div className="bg-slate-50 py-3 px-4 border-b border-slate-200">
+                <h4 className="font-medium text-slate-900">Pricing</h4>
+              </div>
+              
+              <div className="p-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm text-slate-700">Base Rate</div>
+                      <div className="text-xs text-slate-500">{formatDistance(route.totalDistance)} @ ${mileRate.toFixed(2)}/mile</div>
+                    </div>
+                    <div className="text-slate-900">{currency} ${baseCost.toFixed(2)}</div>
+                  </div>
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-slate-700">Fuel Surcharge</div>
+                    <div className="text-slate-900">{currency} ${fuelSurcharge.toFixed(2)}</div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-slate-700">Permit Fee</div>
+                    <div className="text-slate-900">{currency} ${permitCosts.permitFee.toFixed(2)}</div>
+                  </div>
+                  
+                  {permitCosts.pilotCars > 0 && (
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-sm text-slate-700">Pilot Cars</div>
+                        <div className="text-xs text-slate-500">{permitCosts.pilotCars} required</div>
+                      </div>
+                      <div className="text-slate-900">{currency} ${permitCosts.pilotCarCost.toFixed(2)}</div>
+                    </div>
+                  )}
+                  
+                  {permitCosts.policeEscort && (
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-slate-700">Police Escort</div>
+                      <div className="text-slate-900">{currency} ${permitCosts.policeEscortCost.toFixed(2)}</div>
+                    </div>
+                  )}
+                  
+                  {documentType === 'invoice' && (
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-slate-700">Additional Services</div>
+                      <div className="text-slate-900">{currency} ${additionalServices.toFixed(2)}</div>
+                    </div>
+                  )}
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="text-base font-medium text-slate-900">Total</div>
+                    <div className="text-lg font-semibold text-primary">{currency} ${total.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-6">
+              <div className="bg-slate-50 py-3 px-4 border-b border-slate-200">
+                <h4 className="font-medium text-slate-900">Route Map</h4>
+              </div>
+              
+              <div className="p-4">
                 <iframe
                   title="Google Maps Route"
                   width="100%"
-                  height="100%"
+                  height="200"
                   style={{ border: 0 }}
                   src={`https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${route.segments[0].from.lat},${route.segments[0].from.lng}&destination=${route.segments[0].to.lat},${route.segments[0].to.lng}&mode=driving`}
                   allowFullScreen
                   className="rounded-md"
                 ></iframe>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                  <p className="text-white text-sm">Total Distance: {formatDistance(route.totalDistance)}</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Route Map: {route.segments[0].from.name} to {route.segments[0].to.name} • {formatDistance(route.totalDistance)} • {formatTime(route.totalTime)}
-              </p>
-            </div>
-            
-            <div className="mt-8">
-              <h5 className="text-sm font-medium mb-3">Pricing Breakdown</h5>
-              
-              <div className="border-t border-muted">
-                <div className="py-3 flex justify-between">
-                  <span className="text-sm">Base Rate ({formatDistance(route.totalDistance)} @ ${mileRate.toFixed(2)}/mile)</span>
-                  <span className="text-sm font-medium">{currency} ${baseCost.toFixed(2)}</span>
-                </div>
-                
-                <div className="py-3 flex justify-between border-t border-muted">
-                  <span className="text-sm">Fuel Surcharge</span>
-                  <span className="text-sm font-medium">{currency} ${fuelSurcharge.toFixed(2)}</span>
-                </div>
-                
-                <div className="py-3 flex justify-between border-t border-muted">
-                  <span className="text-sm">Permit Fee</span>
-                  <span className="text-sm font-medium">{currency} ${permitCosts.permitFee.toFixed(2)}</span>
-                </div>
-                
-                {permitCosts.pilotCars > 0 && (
-                  <div className="py-3 flex justify-between border-t border-muted">
-                    <span className="text-sm">Pilot Cars ({permitCosts.pilotCars})</span>
-                    <span className="text-sm font-medium">{currency} ${permitCosts.pilotCarCost.toFixed(2)}</span>
-                  </div>
-                )}
-                
-                {permitCosts.policeEscort && (
-                  <div className="py-3 flex justify-between border-t border-muted">
-                    <span className="text-sm">Police Escort</span>
-                    <span className="text-sm font-medium">{currency} ${permitCosts.policeEscortCost.toFixed(2)}</span>
-                  </div>
-                )}
-                
-                {documentType === 'invoice' && (
-                  <div className="py-3 flex justify-between border-t border-muted">
-                    <span className="text-sm">Additional Services</span>
-                    <span className="text-sm font-medium">{currency} ${additionalServices.toFixed(2)}</span>
-                  </div>
-                )}
-                
-                <div className="py-4 flex justify-between border-t border-muted">
-                  <span className="text-base font-medium">Total</span>
-                  <span className="text-base font-medium">{currency} ${total.toFixed(2)}</span>
-                </div>
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  {route.segments[0].from.name} to {route.segments[0].to.name} • {formatDistance(route.totalDistance)} • {formatTime(route.totalTime)}
+                </p>
               </div>
             </div>
-            
-            {documentType === 'quote' && (
-              <div className="mt-6 bg-muted/10 p-4 rounded-md text-sm">
-                <p className="font-medium">Quote Terms</p>
-                <ul className="mt-2 space-y-1 list-disc list-inside text-muted-foreground">
-                  <li>Quote valid for 7 days from generation</li>
-                  <li>Rates subject to fuel surcharge adjustments</li>
-                  <li>Actual charges may vary based on final shipment details</li>
-                  <li>Additional services may result in additional charges</li>
-                </ul>
-              </div>
-            )}
-            
-            {documentType === 'invoice' && (
-              <div className="mt-6 bg-muted/10 p-4 rounded-md text-sm">
-                <p className="font-medium">Payment Terms</p>
-                <ul className="mt-2 space-y-1 list-disc list-inside text-muted-foreground">
-                  <li>Payment due within 30 days of invoice date</li>
-                  <li>2% late fee applied to overdue payments</li>
-                  <li>Please reference invoice number with payment</li>
-                </ul>
-              </div>
-            )}
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+        <div className="p-6 bg-slate-50 border-t border-slate-200">
           {!generated ? (
             <Button
-              className="w-full bg-primary hover:bg-primary/90"
+              className="w-full bg-primary hover:bg-primary/90 text-white"
               onClick={generateDocument}
             >
               <FileText className="h-4 w-4 mr-2" />
-              Generate {documentType === 'quote' ? 'Quote' : 'Invoice'}
+              Generate Quote
             </Button>
           ) : (
-            <>
-              <div className="flex flex-col md:flex-row gap-2">
-                <Button
-                  className="flex-1 bg-primary hover:bg-primary/90"
-                  onClick={handleDownload}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleCopy}
-                >
-                  <Clipboard className="h-4 w-4 mr-2" />
-                  Copy Share Link
-                </Button>
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-100 rounded-md p-4 flex items-start">
+                <div className="mr-3 flex-shrink-0 text-green-500">
+                  <Check className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-green-800">Quote Generated Successfully</h4>
+                  <p className="mt-1 text-xs text-green-700">Your quote is now ready for download or sharing. Quote Reference: Q-10042</p>
+                </div>
               </div>
               
-              <div className="flex flex-col md:flex-row gap-2">
-                <Button
-                  className="flex-1"
-                  variant="outline"
-                  onClick={() => handleContactOption('quote')}
+              <h4 className="text-base font-medium text-slate-900">What would you like to do next?</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
+                  <div className="flex flex-col h-full">
+                    <h5 className="text-sm font-medium text-slate-900 mb-2">Get a copy of your quote</h5>
+                    <p className="text-xs text-slate-600 mb-4 flex-1">Download a PDF or send it via email for your records</p>
+                    <div className="flex gap-2 mt-auto">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 text-slate-700 border-slate-300 text-xs"
+                        onClick={handleDownload}
+                      >
+                        <Download className="h-3.5 w-3.5 mr-1" /> Download
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 text-slate-700 border-slate-300 text-xs"
+                        onClick={() => handleContactOption('quote')}
+                      >
+                        <Mail className="h-3.5 w-3.5 mr-1" /> Email
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-white rounded-lg border border-primary/30 hover:shadow-sm transition-shadow">
+                  <div className="flex flex-col h-full">
+                    <h5 className="text-sm font-medium text-primary mb-2">Book with a carrier</h5>
+                    <p className="text-xs text-slate-600 mb-4 flex-1">Connect with our partner carriers to schedule this shipment</p>
+                    <Button 
+                      className="w-full mt-auto bg-primary hover:bg-primary/90 text-white text-xs"
+                      onClick={() => handleContactOption('connect')}
+                    >
+                      <Phone className="h-3.5 w-3.5 mr-1" /> Connect with carriers
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                <Button 
+                  variant="ghost" 
+                  className="text-slate-600 text-xs"
+                  onClick={handleCopy}
                 >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email Quote
+                  <Clipboard className="h-3.5 w-3.5 mr-1" />
+                  Copy quote link
                 </Button>
                 
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => handleContactOption('connect')}
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Connect with Carrier
-                </Button>
+                <div className="text-xs text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Quote valid for 7 days
+                  </span>
+                </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </Card>
