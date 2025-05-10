@@ -198,6 +198,7 @@ const TrailerModel: React.FC<{
         fontSize={0.8}
         anchorX="center"
         anchorY="bottom"
+        userData={{ type: 'label' }}
       >
         {`${trailerType.charAt(0).toUpperCase() + trailerType.slice(1)} Trailer (${dimensions.length}')`}
       </Text>
@@ -240,6 +241,7 @@ const LoadModel: React.FC<{
         fontSize={0.6}
         anchorX="center"
         anchorY="bottom"
+        userData={{ type: 'load-label' }}
       >
         {`Load (${dimensions.length}' x ${dimensions.width}' x ${dimensions.height}')`}
       </Text>
@@ -264,7 +266,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'trailer-line' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       
       {/* Load length line */}
       <Line
@@ -274,7 +279,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'load-line' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       
       {/* End markers for trailer */}
       <Line
@@ -284,7 +292,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'trailer-start-marker' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       <Line
         points={[
           [trailerLength/2, -0.5, 0],
@@ -292,7 +303,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'trailer-end-marker' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       
       {/* End markers for load */}
       <Line
@@ -302,7 +316,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'load-start-marker' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       <Line
         points={[
           [loadLength/2, 0.5, 0],
@@ -310,7 +327,10 @@ const MeasurementLines: React.FC<{
         ]}
         color={lineColor}
         lineWidth={1}
-      />
+        userData={{ type: 'load-end-marker' }}
+      >
+        <lineBasicMaterial attach="material" color={lineColor} />
+      </Line>
       
       {/* Labels */}
       <Text 
@@ -318,6 +338,7 @@ const MeasurementLines: React.FC<{
         color="black" 
         fontSize={0.7} 
         anchorY="top"
+        userData={{ type: 'trailer-measurement-label' }}
       >
         {`Trailer: ${trailerLength}'`}
       </Text>
@@ -326,6 +347,7 @@ const MeasurementLines: React.FC<{
         color="black" 
         fontSize={0.7} 
         anchorY="top"
+        userData={{ type: 'load-measurement-label' }}
       >
         {`Load: ${loadLength}'`}
       </Text>
@@ -362,6 +384,7 @@ const LoadVisualizer3D: React.FC<LoadVisualizer3DProps> = ({ trailer, loadDimens
           makeDefault
           position={[0, 5, 20]} 
           fov={75}
+          args={[75, window.innerWidth / window.innerHeight, 0.1, 1000]}
         />
         <OrbitControls 
           enablePan={true}
